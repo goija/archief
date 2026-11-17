@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="nl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schelde-Delta | Zero-Trust Spatiale, Ecologische & Erfgoed Analyse</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS & JS via CDN voor interactieve cartografie -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Google Fonts: Inter & JetBrains Mono voor coördinaten en XML -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        maritime: {
+                            950: '#060d18',
+                            900: '#0b1628',
+                            800: '#13233d',
+                            700: '#1d3458',
+                            600: '#294878',
+                        },
+                        seagrass: {
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                        },
+                        amberreef: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Aangepaste scrollbar en cartografische styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1628;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1d3458;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10b981;
+        }
+        #map {
+            height: 100%;
+            min-height: 520px;
+            width: 100%;
+            z-index: 10;
+            border-radius: 0.75rem;
+        }
+        /* Donkere maritieme stijl voor Leaflet popups */
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+            background-color: #0b1628 !important;
+            color: #f1f5f9 !important;
+            border: 1px solid #1d3458;
+            border-radius: 0.75rem !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7);
+        }
+        .leaflet-popup-content {
+            margin: 12px 16px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .leaflet-container a.leaflet-popup-close-button {
+            color: #94a3b8 !important;
+            padding: 6px 8px 0 0 !important;
+        }
+        .leaflet-control-layers {
+            background-color: #0b1628 !important;
+            color: #e2e8f0 !important;
+            border: 1px solid #1d3458 !important;
+            border-radius: 0.75rem !important;
+            padding: 8px 12px !important;
+        }
+        .pulse-dot {
+            animation: pulseRing 2s infinite;
+        }
+        @keyframes pulseRing {
+            0% { transform: scale(0.95); opacity: 0.9; }
+            50% { transform: scale(1.15); opacity: 0.5; }
+            100% { transform: scale(0.95); opacity: 0.9; }
+        }
+    </style>
+</head>
+<body class="bg-maritime-950 text-slate-100 font-sans antialiased selection:bg-seagrass-500 selection:text-maritime-950 min-h-screen flex flex-col">
+
+    <!-- Toast / Meldingen Container (Geen alert() gebruikt) -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- Top Navigatiebalk -->
+    <header class="bg-maritime-900/95 backdrop-blur-md border-b border-maritime-700/70 sticky top-0 z-40">
+        <div class="max-w-[1600px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <!-- Merk & Zero-Trust Badge -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-seagrass-500 to-teal-700 flex items-center justify-center shadow-lg shadow-seagrass-500/20 shrink-0">
+                    <!-- Inline SVG Kompas / Getijden icoon -->
+                    <svg class="w-6 h-6 text-maritime-950" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor"></polygon>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">SCHELDE-DELTA ARCHIEF</h1>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-seagrass-500/15 text-seagrass-400 border border-seagrass-500/30">
+                            <span class="w-2 h-2 rounded-full bg-seagrass-400 pulse-dot"></span>
+                            Zero-Trust Lokaal
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400 hidden sm:block">Spatiale Cartografie • Ecologische Baselines • Kadastraal & IMRO Erfgoed</p>
+                </div>
+            </div>
+
+            <!-- Hoofdtabbladen Navigatie -->
+            <nav class="flex items-center gap-1.5 bg-maritime-950/80 p-1.5 rounded-xl border border-maritime-700/60 overflow-x-auto max-w-full" aria-label="Hoofdnavigatie">
+                <button onclick="switchTab('map')" id="tab-btn-map" class="tab-btn active-tab px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 bg-maritime-700 text-white shadow">
+                    <svg class="w-4 h-4 text-seagrass-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                    <span>Kaart & Lagen</span>
+                </button>
+                <button onclick="switchTab('dossier')" id="tab-btn-dossier" class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-maritime-800">
+                    <svg class="w-4 h-4 text-amberreef-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    <span>Dossiers & Bronnen</span>
+                </button>
+                <button onclick="switchTab('fieldwork')" id="tab-btn-fieldwork" class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-maritime-800">
+                    <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                    <span>Audio & Veldwerk</span>
+                </button>
+                <button onclick="switchTab('webrtc')" id="tab-btn-webrtc" class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-maritime-800">
+                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                    <span>WebRTC P2P</span>
+                    <span id="p2p-status-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
+                </button>
+                <button onclick="switchTab('rss')" id="tab-btn-rss" class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-maritime-800">
+                    <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
+                    <span>RSS / XML Studio</span>
+                </button>
+            </nav>
+
+            <!-- Snelle Status & Lokale Opslag Export -->
+            <div class="flex items-center gap-2">
+                <button onclick="exportLocalStateJSON()" title="Exporteer alle lokale notities en markers als JSON" class="px-3 py-2 rounded-lg bg-maritime-800 hover:bg-maritime-700 border border-maritime-600/60 text-xs font-medium text-slate-200 transition flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-seagrass-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span class="hidden md:inline">Backup JSON</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Global Voorlees-Balk (Web Speech API) -->
+    <div id="speech-bar" class="bg-maritime-900 border-b border-maritime-700/60 px-4 py-2 hidden">
+        <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <span class="flex h-3 w-3 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-seagrass-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-seagrass-500"></span>
+                </span>
+                <span class="text-xs font-semibold uppercase tracking-wider text-seagrass-400">Voorleesmodus (nl-NL):</span>
+                <span id="speech-title" class="text-xs text-slate-200 truncate max-w-xs sm:max-w-md font-medium">Geen actieve tekst</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-xs text-slate-400 flex items-center gap-1">
+                    Snelheid:
+                    <select id="speech-rate" onchange="updateSpeechRate()" class="bg-maritime-800 border border-maritime-600 rounded-md px-1.5 py-0.5 text-xs text-white">
+                        <option value="0.85">0.85x</option>
+                        <option value="1.0" selected>1.0x</option>
+                        <option value="1.15">1.15x</option>
+                        <option value="1.3">1.3x</option>
+                    </select>
+                </label>
+                <button onclick="togglePauseSpeech()" id="btn-speech-pause" class="px-2.5 py-1 rounded-md bg-maritime-700 hover:bg-maritime-600 text-xs font-medium text-white">Pauzeer</button>
+                <button onclick="stopSpeech()" class="px-2.5 py-1 rounded-md bg-rose-900/70 hover:bg-rose-800 text-xs font-medium text-rose-200 border border-rose-700/50">Stop</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hoofdinhoud Container -->
+    <main class="flex-1 max-w-[1600px] w-full mx-auto p-4 sm:p-5">
+
+        <!-- ===================================================================== -->
+        <!-- TAB 1: INTERACTIEVE KAART & SPATIALE ANALYSE                          -->
+        <!-- ===================================================================== -->
+        <section id="view-map" class="tab-view grid grid-cols-1 lg:grid-cols-12 gap-5">
+            
+            <!-- Linker Zijpaneel: Regio-switcher, Lagenbeheer & Kadastrale Inspector -->
+            <div class="lg:col-span-4 xl:col-span-3 flex flex-col gap-4 order-2 lg:order-1">
+                
+                <!-- Regio Vergelijking Switcher (Schelde-Delta vs. Waddenzee/Ameland Referentie) -->
+                <div class="bg-maritime-900 border border-maritime-700/80 rounded-2xl p-4 shadow-xl">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-seagrass-400 mb-2.5 flex items-center justify-between">
+                        <span>Regio & Referentiekader</span>
+                        <span class="font-mono text-[11px] text-slate-400" id="active-coords-badge">51.484°N, 4.268°E</span>
+                    </h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+                        <button onclick="flyToRegion('schelde')" id="btn-region-schelde" class="p-3 rounded-xl border border-seagrass-500/60 bg-seagrass-500/10 text-left transition hover:bg-seagrass-500/20">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-semibold text-white">1. Schelde-Delta & Oesterdam</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-seagrass-500/20 text-seagrass-300 font-mono">Primair</span>
+                            </div>
+                            <p class="text-xs text-slate-300 mt-1">Oosterschelde, Zoommeer, Molenplaat, Speelmansplaten (51.48406, 4.26785)</p>
+                        </button>
+                        <button onclick="flyToRegion('wadden')" id="btn-region-wadden" class="p-3 rounded-xl border border-maritime-700 bg-maritime-800/60 text-left transition hover:border-amberreef-400/60 hover:bg-maritime-800">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-semibold text-slate-200">2. Noordelijke Referentie (Wadden)</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-amberreef-500/20 text-amberreef-300 font-mono">Vergelijk</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Traject 53.17587°N, 5.85210°E → 53.42747°N, 5.74381°E (Friese kust / Ameland)</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Interactieve Kaartlagen (Layers) -->
+                <div class="bg-maritime-900 border border-maritime-700/80 rounded-2xl p-4 shadow-xl">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3">Cartografische Lagen (Layers)</h2>
+                    <div class="space-y-2.5 text-sm">
+                        <label class="flex items-start gap-3 p-2.5 rounded-xl bg-maritime-800/50 border border-maritime-700/60 cursor-pointer hover:border-seagrass-500/50 transition">
+                            <input type="checkbox" checked onchange="toggleMapLayer('kadaster')" class="mt-1 rounded text-seagrass-500 focus:ring-seagrass-500 bg-maritime-950 border-maritime-600">
+                            <div>
+                                <span class="font-medium text-white flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>
+                                    Kadastraal & WOO-Aandachtspunten
+                                </span>
+                                <span class="text-xs text-slate-400 block mt-0.5">Tholen K354, K269, K133, Molenplaat (150 ha), Bol van Lodijke (Perceel 369 viswater 12,5 ha vs. Poortvliet M 369 1,48 ha)</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start gap-3 p-2.5 rounded-xl bg-maritime-800/50 border border-maritime-700/60 cursor-pointer hover:border-seagrass-500/50 transition">
+                            <input type="checkbox" checked onchange="toggleMapLayer('ecologie')" class="mt-1 rounded text-seagrass-500 focus:ring-seagrass-500 bg-maritime-950 border-maritime-600">
+                            <div>
+                                <span class="font-medium text-white flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>
+                                    Ecologie & Historie (1578–1883)
+                                </span>
+                                <span class="text-xs text-slate-400 block mt-0.5">Oesterriffen 1883 (O.T. Olsen), Weervisserij vakken A–F (1756), Natura 2000 & Verdronken Dorpen</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start gap-3 p-2.5 rounded-xl bg-maritime-800/50 border border-maritime-700/60 cursor-pointer hover:border-seagrass-500/50 transition">
+                            <input type="checkbox" checked onchange="toggleMapLayer('imro')" class="mt-1 rounded text-seagrass-500 focus:ring-seagrass-500 bg-maritime-950 border-maritime-600">
+                            <div>
+                                <span class="font-medium text-white flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block"></span>
+                                    IMRO & Leidingtracés (CO / H₂)
+                                </span>
+                                <span class="text-xs text-slate-400 block mt-0.5">NL.IMRO.0748.BP0209-0301, Buitengebied Zuid / Oesterdam & Buisleidingenstraat over Molenplaat</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start gap-3 p-2.5 rounded-xl bg-maritime-800/50 border border-maritime-700/60 cursor-pointer hover:border-seagrass-500/50 transition">
+                            <input type="checkbox" checked onchange="toggleMapLayer('wadden')" class="mt-1 rounded text-seagrass-500 focus:ring-seagrass-500 bg-maritime-950 border-maritime-600">
+                            <div>
+                                <span class="font-medium text-white flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span>
+                                    Noordelijke Referentielijn (Wadden)
+                                </span>
+                                <span class="text-xs text-slate-400 block mt-0.5">Vector & afstandsanalyse Leeuwarden/Noord-Fryslân Buitendijks ↔ Ameland</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start gap-3 p-2.5 rounded-xl bg-maritime-800/50 border border-maritime-700/60 cursor-pointer hover:border-seagrass-500/50 transition">
+                            <input type="checkbox" checked onchange="toggleMapLayer('fieldnotes')" class="mt-1 rounded text-seagrass-500 focus:ring-seagrass-500 bg-maritime-950 border-maritime-600">
+                            <div>
+                                <span class="font-medium text-white flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block"></span>
+                                    Eigen Veldnotities & P2P Markers
+                                </span>
+                                <span class="text-xs text-slate-400 block mt-0.5">Lokaal opgeslagen markers, audio-locaties & P2P gedeelde punten</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Snel Marker Toevoegen / Coördinaten Zoeker -->
+                <div class="bg-maritime-900 border border-maritime-700/80 rounded-2xl p-4 shadow-xl">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Nieuw Spatiale Marker / Veldpunt</h2>
+                    <p class="text-xs text-slate-400 mb-3">Klik direct op de kaart om coördinaten over te nemen, of voer ze handmatig in.</p>
+                    <form onsubmit="addCustomMarkerFromForm(event)" class="space-y-2.5">
+                        <input type="text" id="marker-title" required placeholder="Titel (bijv. Weervisserij Vak C inspectie)" class="w-full bg-maritime-950 border border-maritime-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-seagrass-500">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" step="any" id="marker-lat" required value="51.48406" placeholder="Latitude" class="w-full bg-maritime-950 border border-maritime-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-seagrass-500">
+                            <input type="number" step="any" id="marker-lng" required value="4.26785" placeholder="Longitude" class="w-full bg-maritime-950 border border-maritime-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-seagrass-500">
+                        </div>
+                        <select id="marker-category" class="w-full bg-maritime-950 border border-maritime-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-seagrass-500">
+                            <option value="Kadastraal / WOO">Kadastraal / WOO-onderzoek</option>
+                            <option value="Ecologie / Baseline">Ecologie / Shifting Baseline</option>
+                            <option value="Erfgoed / Weervisserij">Erfgoed / Weervisserij</option>
+                            <option value="IMRO / Infrastructuur">IMRO / Infrastructuur</option>
+                        </select>
+                        <textarea id="marker-desc" rows="2" placeholder="Observatie, kadastraal kenmerk of bronverwijzing..." class="w-full bg-maritime-950 border border-maritime-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-seagrass-500"></textarea>
+                        <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-seagrass-600 hover:bg-seagrass-500 text-maritime-950 font-semibold text-xs transition shadow-lg shadow-seagrass-600/20">
+                            + Vastleggen op Kaart & in RSS Feed
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Rechter Hoofdpaneel: Interactieve Leaflet Kaart + Detail Inspector -->
+            <div class="lg:col-span-8 xl:col-span-9 flex flex-col gap-4 order-1 lg:order-2">
+                <!-- Kaart Container -->
+                <div class="bg-maritime-900 border border-maritime-700/80 rounded-2xl p-2.5 shadow-2xl relative flex-1 min-h-[540px] flex flex-col">
+                    <!-- Bovenste Kaart Toolbar -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 px-2 pb-2.5 text-xs">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-semibold text-slate-200">Snelzoom:</span>
+                            <button onclick="zoomToPoint(51.48406, 4.26785, 14)" class="px-2.5 py-1 rounded-lg bg-maritime-800 hover:bg-maritime-700 text-seagrass-400 border border-maritime-700 transition">Oesterdam (51.484, 4.268)</button>
+                            <button onclick="zoomToPoint(51.4985, 4.2380, 14)" class="px-2.5 py-1 rounded-lg bg-maritime-800 hover:bg-maritime-700 text-amber-300 border border-maritime-700 transition">Molenplaat (150 ha)</button>
+                            <button onclick="zoomToPoint(51.5120, 4.2210, 14)" class="px-2.5 py-1 rounded-lg bg-maritime-800 hover:bg-maritime-700 text-sky-300 border border-maritime-700 transition">Speelmansplaten</button>
+                            <button onclick="zoomToPoint(51.4650, 4.2350, 13)" class="px-2.5 py-1 rounded-lg bg-maritime-800 hover:bg-maritime-700 text-rose-300 border border-maritime-700 transition">Bol van Lodijke / Reimerswaal</button>
+                        </div>
+                        <div class="font-mono text-slate-400 bg-maritime-950 px-2.5 py-1 rounded-lg border border-maritime-800" id="cursor-coords">
+                            Cursor: 51.48406, 4.26785
+                        </div>
+                    </div>
+
+                    <!-- Het daadwerkelijke Leaflet Kaartvlak -->
+                    <div id="map" class="flex-1"></div>
+                </div>
+
+                <!-- Kadastrale & Spatiale Vergelijkingstabel onder de kaart -->
+                <div class="bg-maritime-900 border border-maritime-700/80 rounded-2xl p-4 shadow-xl">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Kadastrale & Juridisch-Planologische Kruisvergelijking (WOO / IMRO)</h3>
+                            <p class="text-xs text-slate-400">Overzicht van cruciale percelen, oppervlaktes en juridische status rond Oesterdam, Tholen en Poortvliet</p>
+                        </div>
+                        <button onclick="readTextAloud('Kadastrale en juridisch-planologische kruisvergelijking', document.getElementById('kadastraal-summary-text').innerText)" class="px-3 py-1.5 rounded-lg bg-maritime-800 hover:bg-maritime-700 border border-maritime-600 text-xs text-seagrass-400 flex items-center gap-1.5 transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                            Lees tabel-duiding voor
+                        </button>
+                    </div>
+
+                    <div id="kadastraal-summary-text" class="hidden">
+                        In het WOO-dossier rond de Oesterdam en Tholen is het onderscheid tussen het viswater Bol van Lodijke, perceel nummer 369 ter grootte van 12,5 hectare, en het landperceel Poortvliet Sectie M nummer 369, bouwland van 1,48 hectare, cruciaal. Daarnaast vallen de percelen Tholen K354, K269 en K133 samen met de waterstaatkundige en ecologische zonering van de Molenplaat van 150 hectare en het bestemmingsplan NL.IMRO.0748.BP0209-0301.
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-maritime-700 text-slate-400 uppercase tracking-wider">
+                                    <th class="py-2.5 px-3">Object / Perceel</th>
+                                    <th class="py-2.5 px-3">Aanduiding & Oppervlakte</th>
+                                    <th class="py-2.5 px-3">Planologie / IMRO</th>
+                                    <th class="py-2.5 px-3">WOO & Erfgoed Analyse</th>
+                                    <th class="py-2.5 px-3 text-right">Kaart</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-maritime-800 text-slate-200">
+                                <tr class="hover:bg-maritime-800/40">
+                                    <td class="py-2.5 px-3 font-semibold text-amber-300">Bol van Lodijke (Viswater)</td>
+                                    <td class="py-2.5 px-3 font-mono">Perceel No. 369 • 12,5 ha</td>
+                                    <td class="py-2.5 px-3">Natura 2000 / Waterstaat</td>
+                                    <td class="py-2.5 px-3">Oudelandse visrechten & verdronken heerlijkheid Lodijke; niet te verwarren met Poortvliet M 369.</td>
+                                    <td class="py-2.5 px-3 text-right"><button onclick="zoomToPoint(51.4685, 4.2420, 15)" class="text-seagrass-400 hover:underline font-medium">Zoom →</button></td>
+                                </tr>
+                                <tr class="hover:bg-maritime-800/40">
+                                    <td class="py-2.5 px-3 font-semibold text-slate-200">Poortvliet Sectie M 369</td>
+                                    <td class="py-2.5 px-3 font-mono">Sectie M nr. 369 • 1,48 ha</td>
+                                    <td class="py-2.5 px-3">Agrarisch / Buitengebied</td>
+                                    <td class="py-2.5 px-3">Binnendijks bouwland (1,48 ha). Cruciaal kadastraal contrast in WOO-stukken t.o.v. perceel 369 viswater.</td>
+                                    <td class="py-2.5 px-3 text-right"><button onclick="zoomToPoint(51.5360, 4.1520, 15)" class="text-seagrass-400 hover:underline font-medium">Zoom →</button></td>
+                                </tr>
+                                <tr class="hover:bg-maritime-800/40">
+                                    <td class="py-2.5 px-3 font-semibold text-emerald-300">Molenplaat & Leidingstrook</td>
+                                    <td class="py-2.5 px-3 font-mono">150 ha • Tholen K354 / K269</td>
+                                    <td class="py-2.5 px-3 font-mono text-[11px]">NL.IMRO.0748.BP0209-0301</td>
+                                    <td class="py-2.5 px-3">Intergetijdenplaat & binnendijkse rand; dubbelbestemming Leiding (CO/H₂) en Archeologie.</td>
+                                    <td class="py-2.5 px-3 text-right"><button onclick="zoomToPoint(51.4985, 4.2380, 14)" class="text-seagrass-400 hover:underline font-medium">Zoom →</button></td>
+                                </tr>
+                                <tr class="hover:bg-maritime-800/40">
+                                    <td class="py-2.5 px-3 font-semibold text-sky-300">Oesterdam & Speelmansplaten</td>
+                                    <td class="py-2.5 px-3 font-mono">Tholen K133 • 51.48406°N</td>
+                                    <td class="py-2.5 px-3">Buitengebied Zuid / Oesterdam</td>
+                                    <td class="py-2.5 px-3">Compartimenteringsdam (1986), weervisserij vakken A-F (1756) en recreatie vs. natuurherstel.</td>
+                                    <td class="py-2.5 px-3 text-right"><button onclick="zoomToPoint(51.48406, 4.26785, 14)" class="text-seagrass-400 hover:underline font-medium">Zoom →</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 2: DOSSIER & BRONNEN ANALYSE MODULE                               -->
+        <!-- ===================================================================== -->
+        <section id="view-dossier" class="tab-view hidden space-y-5">
+            <!-- Zoek- & Filterbalk -->
+            <div class="bg-maritime-900 border border-maritime-700/80 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Kennisbank & Bronnenanalyse (1578 – 2026)</h2>
+                    <p class="text-xs text-slate-400">Doorzoek historische baselines, UNESCO Geopark Schelde Delta dossiers en IMRO/WOO-analyses</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="relative flex-1 sm:w-64">
+                        <input type="text" id="dossier-search" oninput="filterDossiers()" placeholder="Zoek op Pauly, Coenen, Olsen, IMRO..." class="w-full bg-maritime-950 border border-maritime-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-seagrass-500">
+                        <svg class="w-4 h-4 text-slate-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <select id="dossier-category-filter" onchange="filterDossiers()" class="bg-maritime-950 border border-maritime-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-seagrass-500">
+                        <option value="all">Alle Themadossiers</option>
+                        <option value="baseline">Shifting Baseline & Noordzee</option>
+                        <option value="geopark">Geopark Schelde Delta & Erfgoed</option>
+                        <option value="imro">IMRO, Kadastraal & WOO</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Dossier Kaarten Grid (Wordt dynamisch gerenderd via JS) -->
+            <div id="dossier-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-5"></div>
+        </section>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 3: SPRAAKOPNAME (MEDIARECORDER) & VELDNOTITIES                    -->
+        <!-- ===================================================================== -->
+        <section id="view-fieldwork" class="tab-view hidden grid grid-cols-1 lg:grid-cols-12 gap-5">
+            
+            <!-- Linkerkolom: Audio Recorder & Veldnotitie Opstellen -->
+            <div class="lg:col-span-5 space-y-5">
+                <div class="bg-maritime-900 border border-maritime-700/80 rounded-2xl p-5 shadow-xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                            Veldwerk Audio-Recorder (Lokaal)
+                        </h2>
+                        <span class="text-[11px] font-mono text-slate-400 bg-maritime-950 px-2 py-0.5 rounded border border-maritime-800">MediaRecorder API</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Neem mondelinge overleveringen, vissersverhalen of inspectie-observaties op. Audio blijft 100% lokaal in uw browsergeheugen en kan direct worden gedownload of P2P gedeeld.
+                    </p>
+
+                    <!-- Recorder Controls -->
+                    <div class="bg-maritime-950 border border-maritime-800 rounded-xl p-4 flex flex-col items-center justify-center gap-3 mb-4">
+                        <div id="recording-timer" class="font-mono text-2xl font-bold text-slate-200 tracking-wider">00:00</div>
+                        <div id="recording-status" class="text-xs text-slate-400">Klaar voor opname</div>
+                        <div class="flex items-center gap-3 mt-1">
+                            <button onclick="startAudioRecording()" id="btn-rec-start" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-2 transition shadow-lg shadow-rose-600/20">
+                                <span class="w-2.5 h-2.5 rounded-full bg-white"></span>
+                                Start Opname
+                            </button>
+                            <button onclick="stopAudioRecording()" id="btn-rec-stop" disabled class="px-4 py-2 rounded-xl bg-maritime-800 text-slate-400 disabled:opacity-50 text-xs font-semibold flex items-center gap-2 transition">
+                                <span class="w-2.5 h-2.5 bg-current"></span>
+                                Stop & Opslaan
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Metadata koppelen aan opname / notitie -->
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Titel van opname / veldnotitie</label>
+                            <input type="text" id="fieldnote-title" placeholder="Bijv. Interview weervisser Bergen op Zoom / Oesterdam" class="w-full bg-maritime-950 border border-maritime-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-seagrass-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Latitude</label>
+                                <input type="number" step="any" id="fieldnote-lat" value="51.48406" class="w-full bg-maritime-950 border border-maritime-700 rounded-xl px-3 py-2 text-xs font-mono text-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Longitude</label>
+                                <input type="number" step="any" id="fieldnote-lng" value="4.26785" class="w-full bg-maritime-950 border border-maritime-700 rounded-xl px-3 py-2 text-xs font-mono text-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Tekstuele transcriptie / Veldnotitie</label>
+                            <textarea id="fieldnote-text" rows="3" placeholder="Noteer waarnemingen over getijden, oesterbanken, kadastrale grenzen..." class="w-full bg-maritime-950 border border-maritime-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-seagrass-500"></textarea>
+                        </div>
+                        <button onclick="saveTextFieldnote()" class="w-full py-2.5 rounded-xl bg-seagrass-600 hover:bg-seagrass-500 text-maritime-950 font-semibold text-xs transition">
+                            Tekstuele Veldnotitie Opslaan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rechterkolom: Opgeslagen Audio-opnamen & Veldnotities -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="bg-maritime-900 border border-maritime-700/80 rounded-2xl p-5 shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="text-base font-bold text-white">Lokaal Veldarchief & Spraaknotities</h2>
+                            <p class="text-xs text-slate-400">Beluister opnamen, laat tekst voorlezen (TTS) of deel direct via WebRTC</p>
+                        </div>
+                        <span id="fieldnotes-count" class="px-2.5 py-1 rounded-full bg-maritime-800 text-xs font-mono text-seagrass-400 border border-maritime-700">0 items</span>
+                    </div>
+
+                    <div id="fieldnotes-list" class="space-y-3">
+                        <!-- Dynamisch gevuld -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 4: WEBRTC PEER-TO-PEER VELDWERK KANAAL (ZERO-SERVER)              -->
+        <!-- ===================================================================== -->
+        <section id="view-webrtc" class="tab-view hidden grid grid-cols-1 lg:grid-cols-12 gap-5">
+            
+            <!-- Linkerkolom: Handmatige SDP Signaling (Offer / Answer) -->
+            <div class="lg:col-span-6 space-y-4">
+                <div class="bg-maritime-900 border border-maritime-700/80 rounded-2xl p-5 shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-base font-bold text-white">Zero-Server WebRTC Signaling</h2>
+                        <span id="rtc-connection-badge" class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">Niet verbonden</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Breng een versleutelde peer-to-peer verbinding (`RTCDataChannel`) tot stand zonder centrale server. Wissel het Base64-token uit via een beveiligd kanaal (Signal, e-mail of QR).
+                    </p>
+
+                    <!-- Stap 1: Initiator (Offer maken) -->
+                    <div class="bg-maritime-950/90 border border-maritime-800 rounded-xl p-4 mb-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-seagrass-400">Stap 1 (Onderzoeker A): Maak Uitnodiging (Offer)</span>
+                            <button onclick="createWebRTCOffer()" class="px-3 py-1.5 rounded-lg bg-seagrass-600 hover:bg-seagrass-500 text-maritime-950 font-semibold text-xs transition">
+                                Genereer Offer Token
+                            </button>
+                        </div>
+                        <textarea id="rtc-local-sdp" readonly rows="3" placeholder="Klik op 'Genereer Offer Token' of 'Verwerk Offer & Maak Answer'..." class="w-full bg-maritime-900 border border-maritime-700 rounded-lg p-2.5 text-[11px] font-mono text-slate-300 focus:outline-none"></textarea>
+                        <button onclick="copyTextarea('rtc-local-sdp')" class="px-3 py-1.5 rounded-lg bg-maritime-800 hover:bg-maritime-700 text-xs text-slate-200 border border-maritime-600 transition">
+                            Kopieer Lokaal Token
+                        </button>
+                    </div>
+
+                    <!-- Stap 2: Ontvanger / Afronden (Remote SDP plakken) -->
+                    <div class="bg-maritime-950/90 border border-maritime-800 rounded-xl p-4 space-y-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-amberreef-400 block">Stap 2 (Onderzoeker B of A): Plak Ontvangen Token</span>
+                        <textarea id="rtc-remote-sdp" rows="3" placeholder="Plak hier het ontvangen Offer-token (van Onderzoeker A) of Answer-token (van Onderzoeker B)..." class="w-full bg-maritime-900 border border-maritime-700 rounded-lg p-2.5 text-[11px] font-mono text-white focus:outline-none focus:border-amberreef-400"></textarea>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="acceptOfferAndCreateAnswer()" class="px-3 py-1.5 rounded-lg bg-amberreef-500 hover:bg-amberreef-400 text-maritime-950 font-semibold text-xs transition">
+                                Verwerk Offer & Maak Answer (B)
+                            </button>
+                            <button onclick="finalizeWebRTCAnswer()" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition">
+                                Activeer Verbinding met Answer (A)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rechterkolom: Live P2P Data-kanaal & Uitwisseling -->
+            <div class="lg:col-span-6 space-y-4">
+                <div class="bg-maritime-900 border border-maritime-700/80 rounded-2xl p-5 shadow-xl flex flex-col h-full">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-base font-bold text-white">P2P Veldwerk Data-Stream</h2>
+                        <button onclick="sendCurrentMapViewP2P()" class="px-3 py-1.5 rounded-lg bg-maritime-800 hover:bg-maritime-700 border border-seagrass-500/40 text-xs text-seagrass-400 font-medium transition">
+                            Deel Huidige Kaartpositie P2P
+                        </button>
+                    </div>
+
+                    <!-- Berichtenlog -->
+                    <div id="rtc-chat-log" class="flex-1 min-h-[260px] max-h-[360px] overflow-y-auto bg-maritime-950 border border-maritime-800 rounded-xl p-3.5 space-y-2.5 text-xs mb-3">
+                        <div class="text-slate-500 italic">Systeem: Geen actieve P2P-sessie. Gebruik links het SDP-handdrukprotocol om twee browsers direct te koppelen.</div>
+                    </div>
+
+                    <!-- Bericht / Coördinaat versturen -->
+                    <form onsubmit="sendP2PMessage(event)" class="flex gap-2">
+                        <input type="text" id="rtc-message-input" placeholder="Typ een P2P veldbericht of observatie..." class="flex-1 bg-maritime-950 border border-maritime-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-seagrass-500">
+                        <button type="submit" class="px-4 py-2.5 rounded-xl bg-seagrass-600 hover:bg-seagrass-500 text-maritime-950 font-semibold text-xs transition">
+                            Verzend P2P
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 5: RSS 2.0 & GEORSS / XML STUDIO (GENERATOR & PARSER)             -->
+        <!-- ===================================================================== -->
+        <section id="view-rss" class="tab-view hidden grid grid-cols-1 lg:grid-cols-12 gap-5">
+            
+            <!-- Linkerkolom: Real-time RSS 2.0 + GeoRSS XML Generator -->
+            <div class="lg:col-span-6 space-y-4">
+                <div class="bg-maritime-900 border border-maritime-700/80 rounded-2xl p-5 shadow-xl">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div>
+                            <h2 class="text-base font-bold text-white">RSS 2.0 / GeoRSS & Dublin Core Generator</h2>
+                            <p class="text-xs text-slate-400">Automatische XML-serialisatie van markers, audio-metadata en dossiers</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="generateRSSFeed()" class="px-3 py-1.5 rounded-lg bg-maritime-800 hover:bg-maritime-700 text-xs text-slate-200 border border-maritime-600">
+                                Vernieuw XML
+                            </button>
+                            <button onclick="downloadRSSFile()" class="px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-400 text-maritime-950 font-semibold text-xs transition">
+                                Download .xml
+                            </button>
+                        </div>
+                    </div>
+
+                    <textarea id="rss-output-xml" readonly rows="18" class="w-full bg-maritime-950 border border-maritime-800 rounded-xl p-3.5 text-[11px] font-mono text-emerald-300 leading-relaxed focus:outline-none"></textarea>
+                    
+                    <div class="mt-3 flex justify-between items-center text-xs text-slate-400">
+                        <span>Standaarden: RSS 2.0, GeoRSS Simple (`&lt;georss:point&gt;`), Dublin Core (`dc:creator`)</span>
+                        <button onclick="copyTextarea('rss-output-xml')" class="text-seagrass-400 hover:underline font-medium">Kopieer XML</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rechterkolom: Externe RSS / XML Importer & Parser -->
+            <div class="lg:col-span-6 space-y-4">
+                <div class="bg-maritime-900 border border-maritime-700/80 rounded-2xl p-5 shadow-xl">
+                    <h2 class="text-base font-bold text-white mb-1">XML / GeoRSS Feed Parser & Kaart-Import</h2>
+                    <p class="text-xs text-slate-400 mb-3">Plak een externe RSS 2.0 of Atom XML-feed (met of zonder `&lt;georss:point&gt;`) om items te analyseren en op de kaart te plotten.</p>
+                    
+                    <textarea id="rss-import-input" rows="7" placeholder="Plak hier uw XML / RSS 2.0 broncode..." class="w-full bg-maritime-950 border border-maritime-700 rounded-xl p-3 text-[11px] font-mono text-slate-200 focus:outline-none focus:border-orange-400 mb-3"></textarea>
+                    
+                    <div class="flex flex-wrap items-center gap-2 mb-4">
+                        <button onclick="parseImportedXML()" class="px-4 py-2 rounded-xl bg-seagrass-600 hover:bg-seagrass-500 text-maritime-950 font-semibold text-xs transition">
+                            Parseer XML & Plot op Kaart
+                        </button>
+                        <button onclick="loadSampleGeoRSS()" class="px-3 py-2 rounded-xl bg-maritime-800 hover:bg-maritime-700 text-xs text-slate-300 border border-maritime-600 transition">
+                            Laad Voorbeeld GeoRSS (Wadden & Schelde)
+                        </button>
+                    </div>
+
+                    <div id="parsed-xml-results" class="space-y-2.5 max-h-[260px] overflow-y-auto">
+                        <div class="text-xs text-slate-500 italic">Nog geen externe XML geparseerd.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-maritime-900 border-t border-maritime-800 py-3 px-4 text-xs text-slate-400 mt-auto">
+        <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div>Zero-Trust Spatiale & Erfgoed Werkbank • Geen externe trackers, cookies of cloud-logging</div>
+            <div class="font-mono text-[11px] text-slate-500">WGS84 / EPSG:4326 • LocalStorage & WebRTC Direct</div>
+        </div>
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!-- JAVASCRIPT APPLICATIELOGICA                                           -->
+    <!-- ===================================================================== -->
+    <script>
+        /**
+         * 1. CENTRALE DATASETS & BRONNEN (BRONMATERIAAL SCHELDE-DELTA, ECOLOGIE, IMRO)
+         */
+        const DOSSIER_ITEMS = [
+            {
+                id: 'shifting-baseline',
+                category: 'baseline',
+                badge: 'Ecologische Baseline • 1578–2026',
+                badgeColor: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+                title: 'Shifting Baseline Syndrome & "Terug naar de walvis-tijd?"',
+                subtitle: 'Daniel Pauly (1995), De Groene Amsterdammer (11 nov 2026), Adriaen Coenen (1578) & O.T. Olsen (1883)',
+                summary: 'Visserijbioloog Daniel Pauly muntte in 1995 het begrip Shifting Baseline Syndrome: elke generatie beschouwt de ecologische toestand aan het begin van haar eigen loopbaan als de natuurlijke nulmeting, waardoor eeuwenlange verschraling onzichtbaar wordt.',
+                details: [
+                    'De Groene Amsterdammer (11 nov 2026): Reportage met kottervisser Adrie Vonk (TX1) over hoe historische bronnen een totaal andere Noordzee tonen dan moderne beheersdoelen.',
+                    'Adriaen Coenens "Visboeck" (1578): Scheveningse visafslager beschreef nauwgezet strandingen van walvissen, gigantische steuren, bruinvissen en overvloedige kustfauna.',
+                    'O.T. Olsen "Piscatorial Atlas" (1883): Bracht uitgestrekte natuurlijke oesterriffen in kaart op de Noordzee en in de estuaria (waaronder een oesterbank ter grootte van Nederland), lang voordat boomkorvisserij en ziektes de riffen deden verdwijnen.'
+                ],
+                coords: [51.4950, 4.2150],
+                coordLabel: 'Oosterschelde Oestergronden'
+            },
+            {
+                id: 'geopark-schelde',
+                category: 'geopark',
+                badge: 'UNESCO Global Geopark & Erfgoed',
+                badgeColor: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+                title: 'Geopark Schelde Delta, Verdronken Dorpen & Weervisserij',
+                subtitle: 'Be-leefbare Schelde, Reimerswaal, Lodijke & Immaterieel Erfgoed (1756)',
+                summary: 'Het UNESCO Global Geopark Schelde Delta verbindt geologische delta-dynamiek met cultuurhistorie. De verdronken stad Reimerswaal en heerlijkheid Lodijke getuigen van de strijd tussen landwinning, stormvloeden en getijden.',
+                details: [
+                    'Weervisserij (Vakken A–F / 1756): Eeuwenoude, duurzame vangsttechniek met V-vormige houten staketsels (weren) op de slikken bij Bergen op Zoom en de Oesterdam voor ansjovis.',
+                    'Be-leefbare Schelde & Recreatiedruk: Spanning rond de Speelmansplaten en Molenplaat tussen natuurherstel (Natura 2000), waterrecreatie en historische oudelandse visrechten.',
+                    'Bol van Lodijke: Historische viswaterconcessie (Perceel No. 369, 12,5 ha) als levend relict van middeleeuwse heerlijke rechten.'
+                ],
+                coords: [51.48406, 4.26785],
+                coordLabel: 'Oesterdam & Weervisserij'
+            },
+            {
+                id: 'imro-woo-analyse',
+                category: 'imro',
+                badge: 'Ruimtelijke Ordening & WOO',
+                badgeColor: 'bg-rose-500/15 text-rose-300 border-rose-500/30',
+                title: 'IMRO-Planologie, Kadastrale Percelen & Leidingtracés',
+                subtitle: 'NL.IMRO.0748.BP0209-0301, Buitengebied Zuid / Oesterdam & Tholen K-percelen',
+                summary: 'Juridisch-planologische en kadastrale analyse van de overgangszone Oosterschelde–Zoommeer, waarin dubbelbestemmingen voor archeologie, waterstaat en energie-infrastructuur samenkomen.',
+                details: [
+                    'Bestemmingsplan NL.IMRO.0748.BP0209-0301 & Buitengebied Zuid / Oesterdam: Reguleert waterstaatkundige werken, natuurwaarden en ondergrondse infrastructuur.',
+                    'Kadastraal onderscheid WOO: Perceel No. 369 (Bol van Lodijke, viswater 12,5 ha) versus Poortvliet Sectie M nr. 369 (agrarisch bouwland 1,48 ha), plus Tholen K354, K269 en K133.',
+                    'Molenplaat (150 ha) & Buisleidingen: Dubbelbestemming "Leiding" voor transport van CO en waterstof (H₂) langs en over de plaat vereist strikte afweging met verdronken erfgoed (archeologie) en slikecologie.'
+                ],
+                coords: [51.4985, 4.2380],
+                coordLabel: 'Molenplaat & Leidingtracé'
+            }
+        ];
+
+        // Initiële veldnotities (worden aangevuld vanuit localStorage)
+        let localFieldnotes = [];
+        let map, layerGroups = {};
+        let speechUtterance = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recordingInterval = null;
+        let recordingSeconds = 0;
+
+        // WebRTC variabelen
+        let peerConnection = null;
+        let dataChannel = null;
+
+        /**
+         * 2. INITIALISATIE BIJ LADEN VAN DE PAGINA
+         */
+        window.addEventListener('DOMContentLoaded', () => {
+            loadLocalFieldnotes();
+            initLeafletMap();
+            renderDossiers();
+            renderFieldnotesList();
+            generateRSSFeed();
+        });
+
+        /**
+         * 3. TABBLAD NAVIGATIE
+         */
+        function switchTab(tabId) {
+            // Verberg alle views
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+            // Reset alle knoppen
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-maritime-700', 'text-white', 'shadow');
+                btn.classList.add('text-slate-300');
+            });
+
+            // Toon actieve view & markeer knop
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            activeBtn.classList.add('bg-maritime-700', 'text-white', 'shadow');
+            activeBtn.classList.remove('text-slate-300');
+
+            // Herbereken kaartgrootte als kaart-tab wordt geopend
+            if (tabId === 'map' && map) {
+                setTimeout(() => map.invalidateSize(), 150);
+            }
+            if (tabId === 'rss') {
+                generateRSSFeed();
+            }
+        }
+
+        /**
+         * 4. INTERACTIEVE LEAFLET KAART & SPATIALE LAGEN
+         */
+        function initLeafletMap() {
+            // Startpunt op Oesterdam / Schelde-Delta (51.48406, 4.26785)
+            map = L.map('map', {
+                center: [51.4880, 4.2520],
+                zoom: 13,
+                zoomControl: true
+            });
+
+            // Basiskaarten: CartoDB Dark Matter (maritiem donker) & OpenStreetMap Standaard
+            const darkCarto = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 19
+            });
+
+            const osmStandard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap bijdragers',
+                maxZoom: 19
+            });
+
+            const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 18
+            });
+
+            darkCarto.addTo(map);
+
+            L.control.layers({
+                "Maritiem Donker (Carto)": darkCarto,
+                "OpenStreetMap": osmStandard,
+                "Satelliet / Luchtfoto": esriSatellite
+            }, null, { position: 'topright' }).addTo(map);
+
+            // Maak LayerGroups aan
+            layerGroups = {
+                kadaster: L.layerGroup().addTo(map),
+                ecologie: L.layerGroup().addTo(map),
+                imro: L.layerGroup().addTo(map),
+                wadden: L.layerGroup().addTo(map),
+                fieldnotes: L.layerGroup().addTo(map)
+            };
+
+            populatePredefinedMapLayers();
+            renderFieldnotesOnMap();
+
+            // Cursor-coördinaten live bijwerken & klik-om-coördinaten-te-vullen
+            map.on('mousemove', (e) => {
+                document.getElementById('cursor-coords').textContent = `Cursor: ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
+            });
+
+            map.on('click', (e) => {
+                const lat = e.latlng.lat.toFixed(5);
+                const lng = e.latlng.lng.toFixed(5);
+                document.getElementById('marker-lat').value = lat;
+                document.getElementById('marker-lng').value = lng;
+                document.getElementById('fieldnote-lat').value = lat;
+                document.getElementById('fieldnote-lng').value = lng;
+                showToast(`Coördinaten geselecteerd: ${lat}, ${lng}`, 'info');
+            });
+        }
+
+        function createCustomPin(colorHex) {
+            return L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color:${colorHex}; width:14px; height:14px; border-radius:50%; border:2.5px solid #060d18; box-shadow: 0 0 10px ${colorHex};"></div>`,
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
+            });
+        }
+
+        function populatePredefinedMapLayers() {
+            // --- LAAG 1: KADASTRAAL & WOO-AANDACHTSPUNTEN ---
+            const kadasterPoints = [
+                {
+                    coords: [51.48406, 4.26785],
+                    title: 'Oesterdam & Tholen K133 (Referentiepunt)',
+                    desc: '<b>Coördinaten:</b> 51.48406°N, 4.26785°E<br><b>Kadastraal:</b> Gemeente Tholen, Sectie K nr. 133<br><b>Status:</b> Compartimenteringsdam tussen Oosterschelde en Zoommeer; knooppunt van waterstaat, visserij-erfgoed en WOO-dossier.'
+                },
+                {
+                    coords: [51.4685, 4.2420],
+                    title: 'Bol van Lodijke — Perceel No. 369 (Viswater 12,5 ha)',
+                    desc: '<b>Kadastraal:</b> Perceel No. 369 (Viswater, 12,5 ha)<br><b>WOO-Duiding:</b> Oudelandse viswaterconcessie nabij verdronken heerlijkheid Lodijke. Niet te verwarren met Poortvliet Sectie M nr. 369 (1,48 ha bouwland).'
+                },
+                {
+                    coords: [51.5360, 4.1520],
+                    title: 'Poortvliet Sectie M nr. 369 (Bouwland 1,48 ha)',
+                    desc: '<b>Kadastraal:</b> Poortvliet Sectie M nr. 369 (1,48 ha bouwland)<br><b>WOO-Duiding:</b> Binnendijks agrarisch perceel; opgenomen ter voorkoming van kadastrale verwarring met viswaterperceel 369 (12,5 ha).'
+                },
+                {
+                    coords: [51.5030, 4.2490],
+                    title: 'Tholen Sectie K354 & K269 (Dijkzone / Molenplaat)',
+                    desc: '<b>Kadastraal:</b> Tholen K354 & K269<br><b>Context:</b> Kadastrale overgangszone langs de Bergsediepsluis / Oesterdam en aangrenzende slikken.'
+                }
+            ];
+
+            kadasterPoints.forEach(pt => {
+                L.marker(pt.coords, { icon: createCustomPin('#fbbf24') })
+                    .bindPopup(`<div class="font-bold text-amber-300 mb-1">${pt.title}</div><div>${pt.desc}</div>`)
+                    .addTo(layerGroups.kadaster);
+            });
+
+            // Polygoon: Molenplaat (150 ha)
+            L.polygon([
+                [51.5045, 4.2260],
+                [51.5060, 4.2460],
+                [51.4930, 4.2510],
+                [51.4915, 4.2310]
+            ], {
+                color: '#fbbf24',
+                weight: 2,
+                fillColor: '#f59e0b',
+                fillOpacity: 0.16
+            }).bindPopup(`
+                <div class="font-bold text-amber-300 mb-1">Molenplaat (ca. 150 ha)</div>
+                <div>Intergetijdenplaat in de Oosterschelde (Tholen K354/K269). Cruciaal foerageergebied voor steltlopers, maar doorsneden door ondergrondse leidingtracés (CO/H₂) en grenzend aan weervisserij-gronden.</div>
+            `).addTo(layerGroups.kadaster);
+
+            // --- LAAG 2: ECOLOGIE & HISTORIE (1578 - 1883 - 1756) ---
+            const ecoPoints = [
+                {
+                    coords: [51.4815, 4.2620],
+                    title: 'Weervisserij Vakken A–F (Historische kaart 1756)',
+                    desc: '<b>Erfgoed:</b> UNESCO Geopark Schelde Delta / Immaterieel Erfgoed<br><b>Details:</b> Eeuwenoude weervissen-staketsels (Vakken A t/m F, vastgelegd in 1756) voor duurzame ansjovisvangst met gebruik van de getijdenstroom.'
+                },
+                {
+                    coords: [51.5120, 4.2210],
+                    title: 'Speelmansplaten (Natura 2000 vs. Recreatie)',
+                    desc: '<b>Ecologie & Beleid:</b> Spanning tussen natuurherstel (Natura 2000 Oosterschelde), waterrecreatie en historische oudelandse visrechten.'
+                },
+                {
+                    coords: [51.4920, 4.1980],
+                    title: 'Historische Oesterriffen (O.T. Olsen 1883 Referentie)',
+                    desc: '<b>Shifting Baseline:</b> Referentiepunt voor platte oesterbanken (<i>Ostrea edulis</i>) zoals gekarteerd door O.T. Olsen in de <i>Piscatorial Atlas</i> (1883) en beschreven in Coenens <i>Visboeck</i> (1578).'
+                },
+                {
+                    coords: [51.4610, 4.2180],
+                    title: 'Verdronken Stad Reimerswaal & Lodijke',
+                    desc: '<b>Geopark Schelde Delta:</b> Archeologisch en cultuurhistorisch kerngebied in het Verdronken Land van Zuid-Beveland.'
+                }
+            ];
+
+            ecoPoints.forEach(pt => {
+                L.marker(pt.coords, { icon: createCustomPin('#34d399') })
+                    .bindPopup(`<div class="font-bold text-emerald-300 mb-1">${pt.title}</div><div>${pt.desc}</div>`)
+                    .addTo(layerGroups.ecologie);
+            });
+
+            // --- LAAG 3: IMRO & LEIDINGTRACÉS (CO / H2) ---
+            // Leidingtracé CO / H2 over de Molenplaat
+            L.polyline([
+                [51.5180, 4.2220],
+                [51.4985, 4.2380],
+                [51.48406, 4.26785],
+                [51.4710, 4.2890]
+            ], {
+                color: '#fb7185',
+                weight: 3.5,
+                dashArray: '8, 6'
+            }).bindPopup(`
+                <div class="font-bold text-rose-400 mb-1">Leidingtracé CO / H₂ (Buisleidingenstraat)</div>
+                <div><b>Planologie:</b> NL.IMRO.0748.BP0209-0301 & Buitengebied Zuid / Oesterdam<br><b>Dubbelbestemming:</b> Leiding - Brandstof / Industrieel gas over de Molenplaat (150 ha), met raakvlakken aan archeologische verwachtingswaarden.</div>
+            `).addTo(layerGroups.imro);
+
+            // IMRO Plangrens contour Buitengebied Zuid / Oesterdam
+            L.polygon([
+                [51.5090, 4.2520],
+                [51.5090, 4.2850],
+                [51.4740, 4.2850],
+                [51.4740, 4.2520]
+            ], {
+                color: '#f43f5e',
+                weight: 1.5,
+                fillColor: '#f43f5e',
+                fillOpacity: 0.08
+            }).bindPopup(`
+                <div class="font-bold text-rose-400 mb-1">IMRO Zone: NL.IMRO.0748.BP0209-0301</div>
+                <div>Bestemmingsplan Buitengebied Zuid / Oesterdam. Reguleert waterkering, dubbelbestemming Archeologie, Leidingen en Natura 2000-randvoorwaarden.</div>
+            `).addTo(layerGroups.imro);
+
+            // --- LAAG 4: NOORDELIJKE REFERENTIECOÖRDINATEN (WADDENZEE / AMELAND) ---
+            const waddenStart = [53.1758667, 5.8520992];
+            const waddenEnd = [53.427466, 5.7438134];
+
+            L.marker(waddenStart, { icon: createCustomPin('#38bdf8') })
+                .bindPopup(`
+                    <div class="font-bold text-sky-400 mb-1">Noordelijke Referentie Startpunt</div>
+                    <div class="font-mono text-xs mb-1">53.1758667°N, 5.8520992°E</div>
+                    <div>Friese vasteland / Leeuwarden-Noord referentiepunt voor vergelijkende kust- en getijdenanalyse met de Schelde-Delta.</div>
+                `).addTo(layerGroups.wadden);
+
+            L.marker(waddenEnd, { icon: createCustomPin('#38bdf8') })
+                .bindPopup(`
+                    <div class="font-bold text-sky-400 mb-1">Noordelijke Referentie Eindpunt (Ameland / Waddenzee)</div>
+                    <div class="font-mono text-xs mb-1">53.427466°N, 5.7438134°E</div>
+                    <div>Waddeneiland Ameland / Waddenzee getijdensysteem. Vergelijkbaar intergetijden- en oesterbankherstel-vraagstuk (TX1 / Noordzee-ecologie).</div>
+                `).addTo(layerGroups.wadden);
+
+            L.polyline([waddenStart, waddenEnd], {
+                color: '#38bdf8',
+                weight: 3,
+                dashArray: '6, 6'
+            }).bindPopup(`
+                <div class="font-bold text-sky-400 mb-1">Noordelijk Referentietraject (Waddenzee)</div>
+                <div>Afstand: ca. 28,9 km hemelsbreed (azimut ~345° NNW). Gebruikt om getijden- en baseline-dynamiek van de Waddenzee te spiegelen aan de Oosterschelde.</div>
+            `).addTo(layerGroups.wadden);
+        }
+
+        function toggleMapLayer(layerName) {
+            const checkbox = event.target;
+            if (checkbox.checked) {
+                map.addLayer(layerGroups[layerName]);
+            } else {
+                map.removeLayer(layerGroups[layerName]);
+            }
+        }
+
+        function flyToRegion(region) {
+            const btnSchelde = document.getElementById('btn-region-schelde');
+            const btnWadden = document.getElementById('btn-region-wadden');
+
+            if (region === 'schelde') {
+                map.flyTo([51.4880, 4.2520], 13, { duration: 1.4 });
+                document.getElementById('active-coords-badge').textContent = '51.484°N, 4.268°E';
+                btnSchelde.className = 'p-3 rounded-xl border border-seagrass-500/60 bg-seagrass-500/10 text-left transition';
+                btnWadden.className = 'p-3 rounded-xl border border-maritime-700 bg-maritime-800/60 text-left transition hover:border-amberreef-400/60';
+            } else {
+                map.flyTo([53.3016, 5.7980], 10, { duration: 1.4 });
+                document.getElementById('active-coords-badge').textContent = '53.302°N, 5.798°E';
+                btnWadden.className = 'p-3 rounded-xl border border-amberreef-400/60 bg-amberreef-500/10 text-left transition';
+                btnSchelde.className = 'p-3 rounded-xl border border-maritime-700 bg-maritime-800/60 text-left transition hover:border-seagrass-500/60';
+            }
+        }
+
+        function zoomToPoint(lat, lng, zoom = 14) {
+            switchTab('map');
+            setTimeout(() => {
+                map.flyTo([lat, lng], zoom, { duration: 1.2 });
+            }, 100);
+        }
+
+        /**
+         * 5. VELDNOTITIES & EIGEN MARKERS (LOCALSTORAGE + KAART + RSS)
+         */
+        function loadLocalFieldnotes() {
+            try {
+                const saved = localStorage.getItem('schelde_delta_fieldnotes_v1');
+                if (saved) {
+                    localFieldnotes = JSON.parse(saved);
+                } else {
+                    // Standaard voorbeelditems zodat het systeem direct rijk gevuld is
+                    localFieldnotes = [
+                        {
+                            id: 'fn-init-1',
+                            title: 'Nulmeting Oesterdam & Weervisserij Vak B',
+                            category: 'Erfgoed / Weervisserij',
+                            lat: 51.48406,
+                            lng: 4.26785,
+                            text: 'Inspectie van de houten staketsels nabij de Oesterdam. Duidelijk contrast tussen het zoute Oosterschelde-getij en het zoete Zoommeer.',
+                            timestamp: new Date('2026-11-11T10:30:00').toISOString(),
+                            hasAudio: false
+                        },
+                        {
+                            id: 'fn-init-2',
+                            title: 'WOO Verificatie Perceel 369 (Bol van Lodijke)',
+                            category: 'Kadastraal / WOO',
+                            lat: 51.46850,
+                            lng: 4.24200,
+                            text: 'Bevestiging dat Perceel No. 369 betrekking heeft op 12,5 ha viswater (Bol van Lodijke), te onderscheiden van Poortvliet Sectie M 369 (1,48 ha bouwland).',
+                            timestamp: new Date('2026-11-14T14:15:00').toISOString(),
+                            hasAudio: false
+                        }
+                    ];
+                    saveLocalFieldnotes();
+                }
+            } catch (err) {
+                console.error('Fout bij laden localStorage:', err);
+            }
+        }
+
+        function saveLocalFieldnotes() {
+            try {
+                // Sla metadata en tekst op (zonder vluchtige blob-URLs)
+                const serializable = localFieldnotes.map(({ audioUrl, ...rest }) => rest);
+                localStorage.setItem('schelde_delta_fieldnotes_v1', JSON.stringify(serializable));
+                generateRSSFeed();
+            } catch (err) {
+                console.error('Fout bij opslaan localStorage:', err);
+            }
+        }
+
+        function addCustomMarkerFromForm(e) {
+            e.preventDefault();
+            const title = document.getElementById('marker-title').value.trim();
+            const lat = parseFloat(document.getElementById('marker-lat').value);
+            const lng = parseFloat(document.getElementById('marker-lng').value);
+            const category = document.getElementById('marker-category').value;
+            const text = document.getElementById('marker-desc').value.trim();
+
+            if (!title || isNaN(lat) || isNaN(lng)) return;
+
+            const newItem = {
+                id: 'fn-' + Date.now(),
+                title,
+                category,
+                lat,
+                lng,
+                text: text || 'Vastgelegd via interactieve kaart.',
+                timestamp: new Date().toISOString(),
+                hasAudio: false
+            };
+
+            localFieldnotes.unshift(newItem);
+            saveLocalFieldnotes();
+            renderFieldnotesOnMap();
+            renderFieldnotesList();
+
+            document.getElementById('marker-title').value = '';
+            document.getElementById('marker-desc').value = '';
+
+            map.flyTo([lat, lng], 14);
+            showToast(`Marker "${title}" toegevoegd aan kaart en GeoRSS feed.`, 'success');
+
+            // Als WebRTC actief is, stuur direct door naar peer
+            broadcastP2PObject({ type: 'NEW_MARKER', payload: newItem });
+        }
+
+        function renderFieldnotesOnMap() {
+            if (!layerGroups.fieldnotes) return;
+            layerGroups.fieldnotes.clearLayers();
+
+            localFieldnotes.forEach(item => {
+                L.marker([item.lat, item.lng], { icon: createCustomPin('#c084fc') })
+                    .bindPopup(`
+                        <div class="text-[10px] uppercase tracking-wider text-purple-300 font-semibold">${item.category}</div>
+                        <div class="font-bold text-white text-sm mb-1">${escapeHTML(item.title)}</div>
+                        <div class="text-slate-300 mb-1.5">${escapeHTML(item.text)}</div>
+                        <div class="font-mono text-[11px] text-slate-400">${item.lat.toFixed(5)}, ${item.lng.toFixed(5)}</div>
+                    `)
+                    .addTo(layerGroups.fieldnotes);
+            });
+        }
+
+        /**
+         * 6. DOSSIER & BRONNEN ANALYSE MODULE
+         */
+        function renderDossiers() {
+            const query = (document.getElementById('dossier-search')?.value || '').toLowerCase();
+            const catFilter = document.getElementById('dossier-category-filter')?.value || 'all';
+            const container = document.getElementById('dossier-grid');
+            if (!container) return;
+
+            const filtered = DOSSIER_ITEMS.filter(item => {
+                const matchesCat = catFilter === 'all' || item.category === catFilter;
+                const fullText = `${item.title} ${item.subtitle} ${item.summary} ${item.details.join(' ')}`.toLowerCase();
+                const matchesQuery = !query || fullText.includes(query);
+                return matchesCat && matchesQuery;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full bg-maritime-900 border border-maritime-700 rounded-2xl p-8 text-center text-sm text-slate-400">Geen dossiers gevonden voor uw zoekopdracht.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(item => {
+                const fullSpeechText = `${item.title}. ${item.subtitle}. ${item.summary}. ${item.details.join(' ')}`;
+                return `
+                    <article class="bg-maritime-900 border border-maritime-700/80 rounded-2xl p-5 shadow-xl flex flex-col justify-between hover:border-seagrass-500/40 transition">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-medium border ${item.badgeColor}">${item.badge}</span>
+                                <button onclick="zoomToPoint(${item.coords[0]}, ${item.coords[1]}, 14)" class="text-xs text-seagrass-400 hover:underline flex items-center gap-1 font-medium">
+                                    <span>📍 ${item.coordLabel}</span>
+                                </button>
+                            </div>
+                            <h3 class="text-base font-bold text-white leading-snug mb-1">${item.title}</h3>
+                            <p class="text-xs text-slate-400 font-medium mb-3">${item.subtitle}</p>
+                            <p class="text-xs text-slate-200 leading-relaxed mb-4 bg-maritime-950/70 p-3 rounded-xl border border-maritime-800">${item.summary}</p>
+                            <ul class="space-y-2 text-xs text-slate-300 mb-5">
+                                ${item.details.map(d => `<li class="flex items-start gap-2"><span class="text-seagrass-400 mt-0.5">▪</span><span>${d}</span></li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="pt-3 border-t border-maritime-800 flex items-center justify-between gap-2">
+                            <button onclick='readTextAloud(${JSON.stringify(item.title)}, ${JSON.stringify(fullSpeechText)})' class="px-3 py-2 rounded-xl bg-maritime-800 hover:bg-maritime-700 text-xs font-medium text-seagrass-400 flex items-center gap-1.5 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                                <span>Voorlezen (nl-NL)</span>
+                            </button>
+                            <span class="font-mono text-[11px] text-slate-500">${item.coords[0].toFixed(3)}°N</span>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        function filterDossiers() {
+            renderDossiers();
+        }
+
+        /**
+         * 7. AUDIO-RECORDER (MEDIARECORDER API) & VELDNOTITIES BEHEER
+         */
+        async function startAudioRecording() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showToast('Uw browser ondersteunt geen microfoon-opname (MediaRecorder API).', 'error');
+                return;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioChunks = [];
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                    const audioBlob = new Blob(audioChunks, { type: mimeType });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+
+                    const titleInput = document.getElementById('fieldnote-title').value.trim();
+                    const textInput = document.getElementById('fieldnote-text').value.trim();
+                    const lat = parseFloat(document.getElementById('fieldnote-lat').value) || 51.48406;
+                    const lng = parseFloat(document.getElementById('fieldnote-lng').value) || 4.26785;
+
+                    const newAudioNote = {
+                        id: 'audio-' + Date.now(),
+                        title: titleInput || `Spraakopname veldwerk (${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })})`,
+                        category: 'Audio / Mondelinge Overlevering',
+                        lat,
+                        lng,
+                        text: textInput || `Spraakopname van ${recordingSeconds} seconden vastgelegd op locatie.`,
+                        timestamp: new Date().toISOString(),
+                        hasAudio: true,
+                        audioUrl,
+                        durationSec: recordingSeconds
+                    };
+
+                    localFieldnotes.unshift(newAudioNote);
+                    saveLocalFieldnotes();
+                    renderFieldnotesOnMap();
+                    renderFieldnotesList();
+
+                    document.getElementById('fieldnote-title').value = '';
+                    document.getElementById('fieldnote-text').value = '';
+                    stream.getTracks().forEach(t => t.stop());
+                    showToast('Spraakopname opgeslagen in lokaal veldarchief!', 'success');
+                };
+
+                mediaRecorder.start();
+                recordingSeconds = 0;
+                document.getElementById('recording-timer').textContent = '00:00';
+                document.getElementById('recording-status').textContent = 'Opname bezig... Spreek nu in';
+                document.getElementById('recording-status').classList.add('text-rose-400');
+                document.getElementById('btn-rec-start').disabled = true;
+                document.getElementById('btn-rec-start').classList.add('opacity-50');
+                document.getElementById('btn-rec-stop').disabled = false;
+                document.getElementById('btn-rec-stop').classList.remove('bg-maritime-800', 'text-slate-400');
+                document.getElementById('btn-rec-stop').classList.add('bg-seagrass-600', 'text-maritime-950');
+
+                recordingInterval = setInterval(() => {
+                    recordingSeconds++;
+                    const mins = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
+                    const secs = String(recordingSeconds % 60).padStart(2, '0');
+                    document.getElementById('recording-timer').textContent = `${mins}:${secs}`;
+                }, 1000);
+
+            } catch (err) {
+                showToast('Microfoontoegang geweigerd of niet beschikbaar.', 'error');
+            }
+        }
+
+        function stopAudioRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            clearInterval(recordingInterval);
+            document.getElementById('recording-status').textContent = 'Opname afgerond';
+            document.getElementById('recording-status').classList.remove('text-rose-400');
+            document.getElementById('btn-rec-start').disabled = false;
+            document.getElementById('btn-rec-start').classList.remove('opacity-50');
+            document.getElementById('btn-rec-stop').disabled = true;
+            document.getElementById('btn-rec-stop').classList.add('bg-maritime-800', 'text-slate-400');
+            document.getElementById('btn-rec-stop').classList.remove('bg-seagrass-600', 'text-maritime-950');
+        }
+
+        function saveTextFieldnote() {
+            const title = document.getElementById('fieldnote-title').value.trim();
+            const text = document.getElementById('fieldnote-text').value.trim();
+            const lat = parseFloat(document.getElementById('fieldnote-lat').value) || 51.48406;
+            const lng = parseFloat(document.getElementById('fieldnote-lng').value) || 4.26785;
+
+            if (!title && !text) {
+                showToast('Vul een titel of veldnotitie in.', 'error');
+                return;
+            }
+
+            const newItem = {
+                id: 'fn-' + Date.now(),
+                title: title || 'Veldnotitie zonder titel',
+                category: 'Veldobservatie',
+                lat,
+                lng,
+                text: text || 'Geen aanvullende tekst.',
+                timestamp: new Date().toISOString(),
+                hasAudio: false
+            };
+
+            localFieldnotes.unshift(newItem);
+            saveLocalFieldnotes();
+            renderFieldnotesOnMap();
+            renderFieldnotesList();
+
+            document.getElementById('fieldnote-title').value = '';
+            document.getElementById('fieldnote-text').value = '';
+            showToast('Veldnotitie lokaal opgeslagen & gekoppeld aan kaart.', 'success');
+            broadcastP2PObject({ type: 'NEW_MARKER', payload: newItem });
+        }
+
+        function renderFieldnotesList() {
+            const container = document.getElementById('fieldnotes-list');
+            const badge = document.getElementById('fieldnotes-count');
+            if (!container) return;
+
+            badge.textContent = `${localFieldnotes.length} items`;
+
+            if (localFieldnotes.length === 0) {
+                container.innerHTML = `<div class="text-xs text-slate-500 italic p-4 text-center">Nog geen veldnotities of audio-opnamen vastgelegd.</div>`;
+                return;
+            }
+
+            container.innerHTML = localFieldnotes.map(item => {
+                const dateStr = new Date(item.timestamp).toLocaleString('nl-NL', { dateStyle: 'medium', timeStyle: 'short' });
+                return `
+                    <div class="bg-maritime-950/90 border border-maritime-800 rounded-xl p-4 space-y-2.5">
+                        <div class="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                                <span class="text-[10px] font-semibold uppercase tracking-wider text-purple-400">${escapeHTML(item.category)}</span>
+                                <h3 class="text-sm font-bold text-white">${escapeHTML(item.title)}</h3>
+                            </div>
+                            <span class="font-mono text-[11px] text-slate-400">${dateStr}</span>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">${escapeHTML(item.text)}</p>
+                        
+                        ${item.audioUrl ? `
+                            <div class="bg-maritime-900 p-2.5 rounded-lg border border-maritime-700/70 flex flex-wrap items-center justify-between gap-2">
+                                <audio controls src="${item.audioUrl}" class="h-8 max-w-full"></audio>
+                                <a href="${item.audioUrl}" download="${item.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.webm" class="px-2.5 py-1.5 rounded-lg bg-seagrass-600/20 text-seagrass-300 border border-seagrass-500/30 text-xs font-medium hover:bg-seagrass-600/30">
+                                    Download .webm
+                                </a>
+                            </div>
+                        ` : ''}
+
+                        <div class="pt-2 border-t border-maritime-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+                            <button onclick="zoomToPoint(${item.lat}, ${item.lng}, 15)" class="font-mono text-seagrass-400 hover:underline">
+                                📍 ${item.lat.toFixed(5)}, ${item.lng.toFixed(5)}
+                            </button>
+                            <div class="flex items-center gap-2">
+                                <button onclick='readTextAloud(${JSON.stringify(item.title)}, ${JSON.stringify(item.text)})' class="px-2.5 py-1 rounded-lg bg-maritime-800 hover:bg-maritime-700 text-slate-200 transition">
+                                    Voorlezen
+                                </button>
+                                <button onclick="deleteFieldnote('${item.id}')" class="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-300 transition">
+                                    Verwijder
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function deleteFieldnote(id) {
+            localFieldnotes = localFieldnotes.filter(n => n.id !== id);
+            saveLocalFieldnotes();
+            renderFieldnotesOnMap();
+            renderFieldnotesList();
+            showToast('Item verwijderd uit lokaal archief.', 'info');
+        }
+
+        /**
+         * 8. WEB SPEECH API (VOORLEZEN IN HET NEDERLANDS)
+         */
+        function readTextAloud(title, text) {
+            if (!('speechSynthesis' in window)) {
+                showToast('Web Speech API wordt niet ondersteund in deze browser.', 'error');
+                return;
+            }
+            window.speechSynthesis.cancel();
+
+            speechUtterance = new SpeechSynthesisUtterance(text);
+            speechUtterance.lang = 'nl-NL';
+            speechUtterance.rate = parseFloat(document.getElementById('speech-rate').value) || 1.0;
+
+            const voices = window.speechSynthesis.getVoices();
+            const nlVoice = voices.find(v => v.lang.startsWith('nl'));
+            if (nlVoice) speechUtterance.voice = nlVoice;
+
+            speechUtterance.onstart = () => {
+                document.getElementById('speech-bar').classList.remove('hidden');
+                document.getElementById('speech-title').textContent = title;
+                document.getElementById('btn-speech-pause').textContent = 'Pauzeer';
+            };
+
+            speechUtterance.onend = () => {
+                document.getElementById('speech-bar').classList.add('hidden');
+            };
+
+            window.speechSynthesis.speak(speechUtterance);
+        }
+
+        function togglePauseSpeech() {
+            if (!window.speechSynthesis.speaking) return;
+            const btn = document.getElementById('btn-speech-pause');
+            if (window.speechSynthesis.paused) {
+                window.speechSynthesis.resume();
+                btn.textContent = 'Pauzeer';
+            } else {
+                window.speechSynthesis.pause();
+                btn.textContent = 'Hervat';
+            }
+        }
+
+        function stopSpeech() {
+            window.speechSynthesis.cancel();
+            document.getElementById('speech-bar').classList.add('hidden');
+        }
+
+        function updateSpeechRate() {
+            if (window.speechSynthesis.speaking && speechUtterance) {
+                const currentText = speechUtterance.text;
+                const currentTitle = document.getElementById('speech-title').textContent;
+                readTextAloud(currentTitle, currentText);
+            }
+        }
+
+        /**
+         * 9. WEBRTC PEER-TO-PEER VELDWERK KANAAL (HANDMATIGE SDP BASE64 SIGNALING)
+         */
+        function initPeerConnection() {
+            // Gebruik publieke STUN voor NAT-traversal zonder centrale applicatieserver
+            const config = {
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            };
+            peerConnection = new RTCPeerConnection(config);
+
+            peerConnection.onicecandidate = (event) => {
+                // Zodra ICE gathering compleet is (event.candidate === null), plaats volledige SDP in textarea
+                if (event.candidate === null && peerConnection.localDescription) {
+                    const encoded = btoa(JSON.stringify(peerConnection.localDescription));
+                    document.getElementById('rtc-local-sdp').value = encoded;
+                    showToast('WebRTC SDP Token gereed om te kopiëren!', 'success');
+                }
+            };
+
+            peerConnection.onconnectionstatechange = () => {
+                const state = peerConnection.connectionState;
+                const badge = document.getElementById('rtc-connection-badge');
+                const dot = document.getElementById('p2p-status-dot');
+
+                if (state === 'connected') {
+                    badge.textContent = 'Verbonden (P2P E2E)';
+                    badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-medium bg-seagrass-500/20 text-seagrass-300 border border-seagrass-500/40';
+                    dot.className = 'w-2 h-2 rounded-full bg-seagrass-400 pulse-dot';
+                    appendRTCLog('Systeem', 'Directe Peer-to-Peer dataverbinding actief!');
+                } else {
+                    badge.textContent = `Status: ${state}`;
+                    dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+                }
+            };
+
+            peerConnection.ondatachannel = (event) => {
+                setupDataChannel(event.channel);
+            };
+        }
+
+        function setupDataChannel(channel) {
+            dataChannel = channel;
+            dataChannel.onopen = () => {
+                appendRTCLog('Systeem', 'RTCDataChannel geopend. U kunt nu veldnotities en coördinaten uitwisselen.');
+            };
+            dataChannel.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'CHAT') {
+                        appendRTCLog('Peer (Veldcollega)', msg.text);
+                    } else if (msg.type === 'MAP_POS') {
+                        appendRTCLog('Peer Kaartpositie', `Deelt locatie: ${msg.lat.toFixed(5)}, ${msg.lng.toFixed(5)} (Zoom ${msg.zoom})`, () => zoomToPoint(msg.lat, msg.lng, msg.zoom));
+                    } else if (msg.type === 'NEW_MARKER') {
+                        const marker = msg.payload;
+                        localFieldnotes.unshift(marker);
+                        saveLocalFieldnotes();
+                        renderFieldnotesOnMap();
+                        renderFieldnotesList();
+                        appendRTCLog('Peer Marker Ontvangen', `"${marker.title}" (${marker.lat.toFixed(4)}, ${marker.lng.toFixed(4)}) toegevoegd aan uw kaart.`, () => zoomToPoint(marker.lat, marker.lng, 14));
+                    }
+                } catch (e) {
+                    appendRTCLog('Peer', event.data);
+                }
+            };
+        }
+
+        async function createWebRTCOffer() {
+            initPeerConnection();
+            const channel = peerConnection.createDataChannel('schelde-veldwerk');
+            setupDataChannel(channel);
+
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            document.getElementById('rtc-local-sdp').value = 'ICE-kandidaten verzamelen... een ogenblik geduld.';
+        }
+
+        async function acceptOfferAndCreateAnswer() {
+            const remoteVal = document.getElementById('rtc-remote-sdp').value.trim();
+            if (!remoteVal) {
+                showToast('Plak eerst het Offer-token van Onderzoeker A.', 'error');
+                return;
+            }
+            try {
+                initPeerConnection();
+                const offerDesc = JSON.parse(atob(remoteVal));
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(offerDesc));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                document.getElementById('rtc-local-sdp').value = 'Answer-token genereren...';
+            } catch (err) {
+                showToast('Ongeldig Offer-token formaat.', 'error');
+            }
+        }
+
+        async function finalizeWebRTCAnswer() {
+            const remoteVal = document.getElementById('rtc-remote-sdp').value.trim();
+            if (!remoteVal || !peerConnection) {
+                showToast('Genereer eerst een Offer en plak daarna het Answer-token.', 'error');
+                return;
+            }
+            try {
+                const answerDesc = JSON.parse(atob(remoteVal));
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(answerDesc));
+                showToast('Answer verwerkt! P2P-verbinding wordt opgebouwd...', 'success');
+            } catch (err) {
+                showToast('Kon Answer-token niet verwerken.', 'error');
+            }
+        }
+
+        function sendP2PMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('rtc-message-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            if (dataChannel && dataChannel.readyState === 'open') {
+                dataChannel.send(JSON.stringify({ type: 'CHAT', text }));
+                appendRTCLog('U (Lokaal)', text);
+                input.value = '';
+            } else {
+                showToast('Geen actieve P2P-verbinding. Wissel eerst Offer/Answer tokens uit.', 'error');
+            }
+        }
+
+        function sendCurrentMapViewP2P() {
+            if (!dataChannel || dataChannel.readyState !== 'open') {
+                showToast('Geen actieve P2P-verbinding.', 'error');
+                return;
+            }
+            const center = map.getCenter();
+            const zoom = map.getZoom();
+            dataChannel.send(JSON.stringify({
+                type: 'MAP_POS',
+                lat: center.lat,
+                lng: center.lng,
+                zoom
+            }));
+            appendRTCLog('U (Kaartpositie)', `Locatie verzonden: ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)}`);
+        }
+
+        function broadcastP2PObject(obj) {
+            if (dataChannel && dataChannel.readyState === 'open') {
+                dataChannel.send(JSON.stringify(obj));
+            }
+        }
+
+        function appendRTCLog(sender, message, clickAction = null) {
+            const log = document.getElementById('rtc-chat-log');
+            const entry = document.createElement('div');
+            entry.className = 'p-2 rounded-lg bg-maritime-900 border border-maritime-800';
+            entry.innerHTML = `<span class="font-bold text-seagrass-400">${escapeHTML(sender)}:</span> <span class="text-slate-200">${escapeHTML(message)}</span>`;
+            if (clickAction) {
+                const btn = document.createElement('button');
+                btn.textContent = ' [Toon op kaart]';
+                btn.className = 'text-amber-300 hover:underline font-semibold ml-1';
+                btn.onclick = clickAction;
+                entry.appendChild(btn);
+            }
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        /**
+         * 10. RSS 2.0 / GEORSS & XML STUDIO (GENERATOR & PARSER)
+         */
+        function generateRSSFeed() {
+            const nowRFC822 = new Date().toUTCString();
+            const itemsXML = localFieldnotes.map(item => `    <item>
+      <title>${escapeXML(item.title)}</title>
+      <link>https://schelde-delta.local/marker/${escapeXML(item.id)}</link>
+      <guid isPermaLink="false">${escapeXML(item.id)}</guid>
+      <pubDate>${new Date(item.timestamp).toUTCString()}</pubDate>
+      <category>${escapeXML(item.category)}</category>
+      <dc:creator>Zero-Trust Veldwerk Node</dc:creator>
+      <description>${escapeXML(item.text)}</description>
+      <georss:point>${item.lat.toFixed(6)} ${item.lng.toFixed(6)}</georss:point>
+    </item>`).join('\n');
+
+            const dossierXML = DOSSIER_ITEMS.map(d => `    <item>
+      <title>${escapeXML(d.title)}</title>
+      <link>https://schelde-delta.local/dossier/${escapeXML(d.id)}</link>
+      <guid isPermaLink="false">dossier-${escapeXML(d.id)}</guid>
+      <pubDate>${nowRFC822}</pubDate>
+      <category>${escapeXML(d.badge)}</category>
+      <dc:subject>Schelde-Delta; Noordzee-ecologie; Erfgoed</dc:subject>
+      <description>${escapeXML(d.summary)}</description>
+      <georss:point>${d.coords[0].toFixed(6)} ${d.coords[1].toFixed(6)}</georss:point>
+    </item>`).join('\n');
+
+            const fullXML = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+     xmlns:georss="http://www.georss.org/georss"
+     xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Schelde-Delta Spatiale, Ecologische &amp; Erfgoed Feed</title>
+    <link>https://schelde-delta.local/</link>
+    <description>Zero-Trust GeoRSS 2.0 feed met kadastrale WOO-punten, historische baselines en veldnotities.</description>
+    <language>nl-NL</language>
+    <lastBuildDate>${nowRFC822}</lastBuildDate>
+${itemsXML}
+${dossierXML}
+  </channel>
+</rss>`;
+
+            const out = document.getElementById('rss-output-xml');
+            if (out) out.value = fullXML;
+        }
+
+        function downloadRSSFile() {
+            generateRSSFeed();
+            const xmlContent = document.getElementById('rss-output-xml').value;
+            const blob = new Blob([xmlContent], { type: 'application/rss+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `schelde_delta_georss_${new Date().toISOString().slice(0, 10)}.xml`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('GeoRSS 2.0 XML-bestand gedownload.', 'success');
+        }
+
+        function loadSampleGeoRSS() {
+            document.getElementById('rss-import-input').value = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:georss="http://www.georss.org/georss">
+  <channel>
+    <title>Noordzee &amp; Waddenzee Referentie Feed</title>
+    <item>
+      <title>Waddenzee Zuid-Referentie (Friese Kust)</title>
+      <description>Startpunt noordelijk referentietraject voor getijden- en oesterbankvergelijking.</description>
+      <georss:point>53.1758667 5.8520992</georss:point>
+    </item>
+    <item>
+      <title>Ameland / Waddenzee Noord-Referentie</title>
+      <description>Eindpunt noordelijk referentietraject (53.427466, 5.7438134).</description>
+      <georss:point>53.427466 5.7438134</georss:point>
+    </item>
+  </channel>
+</rss>`;
+            showToast('Voorbeeld GeoRSS geladen. Klik op "Parseer XML & Plot op Kaart".', 'info');
+        }
+
+        function parseImportedXML() {
+            const rawXML = document.getElementById('rss-import-input').value.trim();
+            const resultsContainer = document.getElementById('parsed-xml-results');
+            if (!rawXML) {
+                showToast('Plak eerst XML-code in het invoerveld.', 'error');
+                return;
+            }
+
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(rawXML, 'text/xml');
+                const parseError = xmlDoc.querySelector('parsererror');
+                if (parseError) {
+                    throw new Error('Ongeldige XML-syntaxis');
+                }
+
+                const items = Array.from(xmlDoc.querySelectorAll('item, entry'));
+                if (items.length === 0) {
+                    resultsContainer.innerHTML = `<div class="text-xs text-amber-300">Geen &lt;item&gt; of &lt;entry&gt; elementen aangetroffen in de XML.</div>`;
+                    return;
+                }
+
+                let plottedCount = 0;
+                resultsContainer.innerHTML = items.map(item => {
+                    const title = item.querySelector('title')?.textContent || 'Zonder titel';
+                    const desc = item.querySelector('description, summary')?.textContent || '';
+                    // Zoek naar georss:point (met of zonder namespace prefix)
+                    const geoPointNode = item.getElementsByTagNameNS('*', 'point')[0] || item.querySelector('georss\\:point, point');
+                    let coordsHTML = '<span class="text-slate-500">Geen GeoRSS coördinaten</span>';
+                    let zoomBtn = '';
+
+                    if (geoPointNode && geoPointNode.textContent) {
+                        const parts = geoPointNode.textContent.trim().split(/\s+/);
+                        if (parts.length >= 2) {
+                            const lat = parseFloat(parts[0]);
+                            const lng = parseFloat(parts[1]);
+                            if (!isNaN(lat) && !isNaN(lng)) {
+                                plottedCount++;
+                                L.marker([lat, lng], { icon: createCustomPin('#fb923c') })
+                                    .bindPopup(`<div class="text-[10px] text-orange-400 font-bold uppercase">Geïmporteerd uit XML</div><div class="font-bold text-white">${escapeHTML(title)}</div><div class="text-xs text-slate-300 mt-1">${escapeHTML(desc)}</div>`)
+                                    .addTo(layerGroups.fieldnotes);
+                                coordsHTML = `<span class="font-mono text-orange-300">${lat.toFixed(5)}, ${lng.toFixed(5)}</span>`;
+                                zoomBtn = `<button onclick="zoomToPoint(${lat}, ${lng}, 12)" class="text-seagrass-400 hover:underline font-medium">Toon op kaart →</button>`;
+                            }
+                        }
+                    }
+
+                    return `
+                        <div class="bg-maritime-950 border border-maritime-800 rounded-xl p-3 text-xs space-y-1">
+                            <div class="font-bold text-white">${escapeHTML(title)}</div>
+                            <div class="text-slate-300">${escapeHTML(desc)}</div>
+                            <div class="flex items-center justify-between pt-1">
+                                ${coordsHTML}
+                                ${zoomBtn}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                showToast(`${items.length} XML-items geparseerd (${plottedCount} met coördinaten op kaart geplot).`, 'success');
+            } catch (err) {
+                showToast('Fout bij parsen van XML: ' + err.message, 'error');
+            }
+        }
+
+        /**
+         * 11. HULPFUNCTIES (CLIPBOARD, JSON BACKUP, NOTIFICATIES, SANITIZATION)
+         */
+        function copyTextarea(elementId) {
+            const el = document.getElementById(elementId);
+            if (!el || !el.value) return;
+            el.select();
+            el.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                showToast('Gekopieerd naar klembord!', 'success');
+            } catch (err) {
+                showToast('Kopiëren mislukt; selecteer de tekst handmatig.', 'error');
+            }
+        }
+
+        function exportLocalStateJSON() {
+            const payload = {
+                exportedAt: new Date().toISOString(),
+                architecture: 'Zero-Trust Local Schelde-Delta Archive',
+                fieldnotes: localFieldnotes.map(({ audioUrl, ...rest }) => rest),
+                referenceDossiers: DOSSIER_ITEMS
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `schelde_delta_backup_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Volledige JSON-backup gedownload.', 'success');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-maritime-900 border-seagrass-500 text-seagrass-300',
+                error: 'bg-maritime-900 border-rose-500 text-rose-300',
+                info: 'bg-maritime-900 border-sky-500 text-sky-200'
+            };
+            toast.className = `pointer-events-auto border-l-4 ${colors[type] || colors.info} px-4 py-3 rounded-xl shadow-2xl text-xs font-medium flex items-center justify-between gap-3 border border-maritime-700`;
+            toast.innerHTML = `<span>${escapeHTML(message)}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"']/g, m => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[m]));
+        }
+
+        function escapeXML(str) {
+            if (!str) return '';
+            return String(str).replace(/[<>&'"]/g, c => ({
+                '<': '&lt;', '>': '&gt;', '&': '&amp;', '\'': '&apos;', '"': '&quot;'
+            }[c]));
+        }
+    </script>
+</body>
+</html>
