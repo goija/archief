@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedweb.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/">
+
+<channel>
+	<title>ORCA – Object-RTC API Community Group</title>
+	<atom:link href="https://www.w3.org/community/orca/feed/" rel="self" type="application/rss+xml"/>
+	<link>https://www.w3.org/community/orca</link>
+	<description/>
+	<lastBuildDate>Sat, 08 Mar 2014 21:38:36 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	
+	<item>
+		<title>[action required] ORCA CG name change and new home</title>
+		<link>https://www.w3.org/community/orca/2014/03/08/action-required-orca-cg-name-change-and-new-home/</link>
+					<comments>https://www.w3.org/community/orca/2014/03/08/action-required-orca-cg-name-change-and-new-home/#respond</comments>
+		
+		<dc:creator><![CDATA[Erik Lagerway]]></dc:creator>
+		<pubDate>Sat, 08 Mar 2014 21:38:36 +0000</pubDate>
+				<category><![CDATA[Announcements]]></category>
+		<category><![CDATA[ORTC API]]></category>
+		<category><![CDATA[Object RTC]]></category>
+		<category><![CDATA[ORCA]]></category>
+		<category><![CDATA[ORTC]]></category>
+		<category><![CDATA[WebRTC]]></category>
+		<category><![CDATA[WebRTC Object API]]></category>
+		<guid isPermaLink="false">http://www.w3.org/community/orca/?p=83</guid>
+
+					<description><![CDATA[Hello ORCA Community Group members. We are changing the CG name from ORCA to ORTC as requested by some of our members and other W3C members for various reasons discussed in that last CG meeting. Minutes can be found here: &#8230; <a href="https://www.w3.org/community/orca/2014/03/08/action-required-orca-cg-name-change-and-new-home/">Continue reading <span class="meta-nav">&#8594;</span></a>]]></description>
+										<content:encoded><![CDATA[<p dir="ltr">Hello ORCA Community Group members.</p>
+<p>We are changing the CG name from ORCA to ORTC as requested by some of our members and other W3C members for various reasons discussed in that last CG meeting. Minutes can be found here: <a href="http://ortc.org/ortc-cg-meetings/" target="_blank" rel="nofollow">http://ortc.org/ortc-cg-meetings/</a></p>
+<p>After discussing this with the W3C we had the choice to a.) change the name to ORTC but keep the current ORCA URI or b.) set up an entirely new CG. Since we didn&#8217;t want any confusion (ORTC CG name with a ORCA URI) we opted for the second option.</p>
+<p>We have been told that a second legal review should not be necessary by your sponsoring organization since the new CG is simply replacing the existing CG.</p>
+<p>Here is what that means to you as a member of ORCA:</p>
+<ul>
+<li>You will need to join the new CG: <a href="http://www.w3.org/community/ortc/">http://www.w3.org/community/ortc/</a></li>
+<li>You will need to <a href="http://lists.w3.org/Archives/Public/public-ortc/" target="_blank" rel="nofollow">join the public mail</a> list.</li>
+<li>Signups for the ORCA group will soon be suspended</li>
+<li>Emails sent to the ORCA mail lists will not go through, you will need to use the new lists for new postings. Emails sent to the orca lists will return a message pointing to the new lists at <a href="http://www.w3.org/community/ortc/">ORTC CG</a>.</li>
+<li>ORCA mail lists will live on and will be referenced for historical purposes.</li>
+<li>All Community Groups fall under the guidelines in the <a href="http://www.w3.org/community/about/agreements/cla/">W3C Community Contributor License Agreement (CLA)</a>, so nothing changes there.</li>
+</ul>
+<p>Soon we hope to publish a Public Working Draft of the API so that we can start implementing the API.  Some of that work has already begun: <a href="https://github.com/openpeer/ortc-lib" target="_blank" rel="nofollow">https://github.com/openpeer/ortc-lib</a></p>
+<p>If you have any questions about the name change please forward those to <a href="mailto:erik@hookflash.com" target="_blank" rel="nofollow">erik@hookflash.com</a></p>
+<p>Thank you all for you continued support!</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.w3.org/community/orca/2014/03/08/action-required-orca-cg-name-change-and-new-home/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Slides, video and chat from todays meeting</title>
+		<link>https://www.w3.org/community/orca/2014/02/20/slides-video-and-chat-from-todays-meeting/</link>
+					<comments>https://www.w3.org/community/orca/2014/02/20/slides-video-and-chat-from-todays-meeting/#respond</comments>
+		
+		<dc:creator><![CDATA[Erik Lagerway]]></dc:creator>
+		<pubDate>Thu, 20 Feb 2014 19:40:35 +0000</pubDate>
+				<category><![CDATA[Announcements]]></category>
+		<category><![CDATA[ORTC API]]></category>
+		<category><![CDATA[Object RTC]]></category>
+		<category><![CDATA[ORTC]]></category>
+		<category><![CDATA[WebRTC Object API]]></category>
+		<guid isPermaLink="false">http://www.w3.org/community/orca/?p=79</guid>
+
+					<description><![CDATA[Thanks to everyone for participating! The slides, chat transcription and video from today&#8217;s CG meeting can be found here: http://ortc.org/ortc-cg-meetings/ Best regards, /Erik]]></description>
+										<content:encoded><![CDATA[<div>Thanks to everyone for participating!</div>
+<div></div>
+<div>The slides, chat transcription and video from today&#8217;s CG meeting can be found here:</div>
+<div></div>
+<div><a href="http://ortc.org/ortc-cg-meetings/" target="_blank" rel="nofollow">http://ortc.org/ortc-cg-meetings/</a></div>
+<div></div>
+<div>Best regards,</div>
+<div>/Erik</div>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.w3.org/community/orca/2014/02/20/slides-video-and-chat-from-todays-meeting/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Our first ORCA CG meeting!</title>
+		<link>https://www.w3.org/community/orca/2014/02/13/our-first-orca-cg-meeting/</link>
+					<comments>https://www.w3.org/community/orca/2014/02/13/our-first-orca-cg-meeting/#respond</comments>
+		
+		<dc:creator><![CDATA[Erik Lagerway]]></dc:creator>
+		<pubDate>Thu, 13 Feb 2014 01:26:22 +0000</pubDate>
+				<category><![CDATA[Announcements]]></category>
+		<category><![CDATA[ORTC API]]></category>
+		<category><![CDATA[Object RTC]]></category>
+		<category><![CDATA[ORCA]]></category>
+		<category><![CDATA[ORTC]]></category>
+		<guid isPermaLink="false">http://www.w3.org/community/orca/?p=70</guid>
+
+					<description><![CDATA[Here are the ORCA Community Group meeting details for our very first CG meeting. Time: Thursday, February 20, 2014 10am Pacific (UTC−08:00) Location: Hangouts (Updated: Feb 20) Agenda =============== • Introduction to the CG • Quick review of progress to date • &#8230; <a href="https://www.w3.org/community/orca/2014/02/13/our-first-orca-cg-meeting/">Continue reading <span class="meta-nav">&#8594;</span></a>]]></description>
+										<content:encoded><![CDATA[<p>Here are the ORCA Community Group meeting details for our very first CG meeting.</p>
+<p>Time: Thursday, February 20, 2014 10am Pacific (UTC−08:00)</p>
+<p>Location: <a href="https://plus.google.com/hangouts/_/ytl/vjVQa1PpcFOzPgUAGdpqlqgjoHxxPS0KtALTVW_Xork=?authuser=0&amp;eid=103074447529882495491&amp;hl=en_US" target="_blank" rel="nofollow">Hangouts</a> (Updated: Feb 20)</p>
+<p>Agenda<br />
+===============<br />
+• Introduction to the CG<br />
+• Quick review of progress to date<br />
+• Overview of meeting objectives<br />
+&#8211; Existing proposals review<br />
+&#8211; New proposals &amp; review<br />
+&#8211; API discussion<br />
+• Closing remarks<br />
+• Action items<br />
+&#8211; Table CG name change to ORTC (via Silvia Pfeiffer)</p>
+<p>NOTE: If you are on the public mail list but have not yet joined the Community Group but would like to attend the meeting you may certainly do so. However, if you are planning on making a contribution you will need to join the CG and make those contributions on the mail list.</p>
+<p>Here is the link to the current CG participants and a link to join:<br />
+<a href="http://www.w3.org/community/orca/participants">http://www.w3.org/community/orca/participants</a></p>
+<p>Looking forward to seeing you!<br />
+/Erik</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.w3.org/community/orca/2014/02/13/our-first-orca-cg-meeting/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>API – Editors Draft Update</title>
+		<link>https://www.w3.org/community/orca/2014/01/29/api-editors-draft-update/</link>
+					<comments>https://www.w3.org/community/orca/2014/01/29/api-editors-draft-update/#respond</comments>
+		
+		<dc:creator><![CDATA[Erik Lagerway]]></dc:creator>
+		<pubDate>Wed, 29 Jan 2014 21:46:01 +0000</pubDate>
+				<category><![CDATA[Announcements]]></category>
+		<category><![CDATA[ORTC API]]></category>
+		<category><![CDATA[IETF RTCWEB]]></category>
+		<category><![CDATA[ORCA]]></category>
+		<category><![CDATA[ORTC]]></category>
+		<category><![CDATA[WebRTC Object API]]></category>
+		<guid isPermaLink="false">http://www.w3.org/community/orca/?p=68</guid>
+
+					<description><![CDATA[On January 29th we published an update to the API, this is an Editor&#8217;s Draft (work in progress) http://ortc.org/wp-content/uploads/2014/01/ortc.html]]></description>
+										<content:encoded><![CDATA[<p>On January 29th we published an update to the API, this is an Editor&#8217;s Draft (work in progress)</p>
+<p><a title="ORTC API - Update" href="http://ortc.org/wp-content/uploads/2014/01/ortc.html" target="_blank" rel="nofollow">http://ortc.org/wp-content/uploads/2014/01/ortc.html</a></p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.w3.org/community/orca/2014/01/29/api-editors-draft-update/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>New site: ORTC.org</title>
+		<link>https://www.w3.org/community/orca/2013/11/20/new-site-ortc-org/</link>
+					<comments>https://www.w3.org/community/orca/2013/11/20/new-site-ortc-org/#respond</comments>
+		
+		<dc:creator><![CDATA[Erik Lagerway]]></dc:creator>
+		<pubDate>Wed, 20 Nov 2013 18:24:42 +0000</pubDate>
+				<category><![CDATA[ORTC API]]></category>
+		<category><![CDATA[IETF RTCWEB]]></category>
+		<category><![CDATA[WebRTC]]></category>
+		<category><![CDATA[WebRTC Object API]]></category>
+		<guid isPermaLink="false">http://www.w3.org/community/orca/?p=66</guid>
+
+					<description><![CDATA[There are many resources related to ORTC, here is a collection of those resources: http://ortc.org If we have missed anything please let me know.]]></description>
+										<content:encoded><![CDATA[<p>There are many resources related to ORTC, here is a collection of those resources: <a href="http://ortc.org" target="_blank" rel="nofollow">http://ortc.org</a></p>
+<p>If we have missed anything please let me know.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.w3.org/community/orca/2013/11/20/new-site-ortc-org/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Object RTC Walkthrough – Slides</title>
+		<link>https://www.w3.org/community/orca/2013/11/04/object-rtc-walkthrough-slides-ietf88/</link>
+					<comments>https://www.w3.org/community/orca/2013/11/04/object-rtc-walkthrough-slides-ietf88/#respond</comments>
+		
+		<dc:creator><![CDATA[Erik Lagerway]]></dc:creator>
+		<pubDate>Mon, 04 Nov 2013 17:05:11 +0000</pubDate>
+				<category><![CDATA[ORTC API]]></category>
+		<category><![CDATA[IETF RTCWEB]]></category>
+		<category><![CDATA[ORCA]]></category>
+		<category><![CDATA[ORTC]]></category>
+		<category><![CDATA[WebRTC]]></category>
+		<category><![CDATA[WebRTC Object API]]></category>
+		<guid isPermaLink="false">http://www.w3.org/community/orca/?p=61</guid>
+
+					<description><![CDATA[The Object RTC Walkthrough yesterday was tons of fun and we had plenty of great feedback. Thanks to everyone who joined us onsite and remotely. Here is a link to the slides and what the video recordings: Slides: https://www.dropbox.com/sh/yprr409npt2dctw/25kmYKxZzM Ustream Recordings: http://www.ustream.tv/channel/ortc-live &#8230; <a href="https://www.w3.org/community/orca/2013/11/04/object-rtc-walkthrough-slides-ietf88/">Continue reading <span class="meta-nav">&#8594;</span></a>]]></description>
+										<content:encoded><![CDATA[<p><a href="http://www.w3.org/community/orca/files/2013/11/Screen-Shot-2013-11-04-at-8.56.03-AM.png"><img fetchpriority="high" decoding="async" class="alignnone size-full wp-image-62" src="http://www.w3.org/community/orca/files/2013/11/Screen-Shot-2013-11-04-at-8.56.03-AM.png" alt="" width="653" height="358" srcset="https://www.w3.org/community/orca/files/2013/11/Screen-Shot-2013-11-04-at-8.56.03-AM.png 653w, https://www.w3.org/community/orca/files/2013/11/Screen-Shot-2013-11-04-at-8.56.03-AM-300x164.png 300w" sizes="(max-width: 653px) 100vw, 653px" /></a></p>
+<p>The Object RTC Walkthrough yesterday was tons of fun and we had plenty of great feedback. Thanks to everyone who joined us onsite and remotely.</p>
+<p>Here is a link to the slides and what the video recordings:</p>
+<p>Slides: <a href="https://www.dropbox.com/sh/yprr409npt2dctw/25kmYKxZzM" target="_blank" rel="nofollow">https://www.dropbox.com/sh/yprr409npt2dctw/25kmYKxZzM</a></p>
+<p>Ustream Recordings: <a href="http://www.ustream.tv/channel/ortc-live" target="_blank" rel="nofollow">http://www.ustream.tv/channel/ortc-live</a></p>
+<p>NOTE: There were some issues with the software we were using (Ustream Producer) so only part of the presentation was live/recorded. We do have the entire Walkthrough recorded on another camera. We will get that up on YouTube as quickly as we can.</p>
+<p>We would encourage everyone that attended to join the Community Group so we can continue to evolve the API alongside the current WebRTC work.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.w3.org/community/orca/2013/11/04/object-rtc-walkthrough-slides-ietf88/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>First Draft of Object RTC (ORTC) API for WebRTC published by ORCA – Object-RTC API Community Group</title>
+		<link>https://www.w3.org/community/orca/2013/11/03/first-draft-of-object-rtc-ortc-api-for-webrtc-published-by-orca-object-rtc-api-community-group-2/</link>
+					<comments>https://www.w3.org/community/orca/2013/11/03/first-draft-of-object-rtc-ortc-api-for-webrtc-published-by-orca-object-rtc-api-community-group-2/#respond</comments>
+		
+		<dc:creator><![CDATA[W3C Team]]></dc:creator>
+		<pubDate>Sun, 03 Nov 2013 19:42:31 +0000</pubDate>
+				<category><![CDATA[Uncategorized]]></category>
+		<guid isPermaLink="false">https://www.w3.org/community/orca/?p=57</guid>
+
+					<description><![CDATA[On 2013-11-03 the ORCA &#8211; Object-RTC API Community Group published the first draft of the following specification: Object RTC (ORTC) API for WebRTC. Participants contribute material to this specification under the W3C Community Contributor License Agreement (CLA). If you have &#8230; <a href="https://www.w3.org/community/orca/2013/11/03/first-draft-of-object-rtc-ortc-api-for-webrtc-published-by-orca-object-rtc-api-community-group-2/">Continue reading <span class="meta-nav">&#8594;</span></a>]]></description>
+										<content:encoded><![CDATA[<p>On 2013-11-03 the <a href="/community/orca">ORCA &#8211; Object-RTC API Community Group</a> published the first draft of the following specification:</p>
+<ul>
+<li><a href="http://htmlpreview.github.io/?https://raw.github.com/openpeer/ortc/20131103/ortc.html" target="_blank" rel="nofollow">Object RTC (ORTC) API for WebRTC</a>.</li>
+</ul>
+<p><a href="/community/orca/participants">Participants</a> contribute material to this specification under the <a href="https://www.w3.org/community/about/agreements/cla/">W3C Community Contributor License Agreement (CLA)</a>.</p>
+<p>If you have any questions, please contact the group on their public list: public-orca@w3.org. Learn more about the  <a href="/community/orca">ORCA &#8211; Object-RTC API Community Group</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.w3.org/community/orca/2013/11/03/first-draft-of-object-rtc-ortc-api-for-webrtc-published-by-orca-object-rtc-api-community-group-2/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>ORCA Walk Through | IETF 88</title>
+		<link>https://www.w3.org/community/orca/2013/10/29/orca-walk-through-ietf-88/</link>
+					<comments>https://www.w3.org/community/orca/2013/10/29/orca-walk-through-ietf-88/#respond</comments>
+		
+		<dc:creator><![CDATA[Erik Lagerway]]></dc:creator>
+		<pubDate>Tue, 29 Oct 2013 17:41:50 +0000</pubDate>
+				<category><![CDATA[ORTC API]]></category>
+		<category><![CDATA[IETF RTCWEB]]></category>
+		<category><![CDATA[ORCA]]></category>
+		<category><![CDATA[WebRTC]]></category>
+		<category><![CDATA[WebRTC Object API]]></category>
+		<guid isPermaLink="false">http://www.w3.org/community/orca/?p=49</guid>
+
+					<description><![CDATA[Announcing an ORTC API Walkthrough Update:  Slides for Meeting are enclosed in the dropbox folder https://www.dropbox.com/sh/yprr409npt2dctw/25kmYKxZzM &#8212; Update: Meeting will be held in the Hyatt Regency &#8211; Prince of Wales Room, 3rd Floor &#8211; NE Corner &#8212; Update: We will &#8230; <a href="https://www.w3.org/community/orca/2013/10/29/orca-walk-through-ietf-88/">Continue reading <span class="meta-nav">&#8594;</span></a>]]></description>
+										<content:encoded><![CDATA[<h2>Announcing an ORTC API Walkthrough</h2>
+<p><a href="http://www.w3.org/community/orca/files/2013/08/alternative-route.png"><img decoding="async" class="alignnone size-medium wp-image-7" src="http://www.w3.org/community/orca/files/2013/08/alternative-route-300x225.png" alt="" width="300" height="225" srcset="https://www.w3.org/community/orca/files/2013/08/alternative-route-300x225.png 300w, https://www.w3.org/community/orca/files/2013/08/alternative-route.png 500w" sizes="(max-width: 300px) 100vw, 300px" /></a></p>
+<p>Update:  Slides for Meeting are enclosed in the dropbox folder</p>
+<p>https://www.dropbox.com/sh/yprr409npt2dctw/25kmYKxZzM</p>
+<p>&#8212;</p>
+<p>Update: Meeting will be held in the Hyatt Regency &#8211; Prince of Wales Room, 3rd Floor &#8211; NE Corner</p>
+<p>&#8212;</p>
+<p>Update: We will be streaming Live Video with Chat<br />
+<a href="http://www.ustream.tv/channel/ortc-live" target="_blank" rel="nofollow">http://www.ustream.tv/channel/ortc-live </a></p>
+<p>&#8212;</p>
+<p>Since many people interested in WebRTC will be at IETF 88 in Vancouver, Robin Raymond, Chair of the ORCA Community Group has offered to lead a walkthrough of the ORTC specification from 3-5pm Sunday November 3.</p>
+<p>The event will include a tutorial on the ORTC API as well as a discussion of <a href="http://msopentech.com/blog/2013/10/18/ms-open-tech-publishes-first-implementation-w3c-ortc-simplify-web-based-real-time-communications/" target="_blank" rel="nofollow">sample code and a demo of a prototype</a> implementation.</p>
+<p>Space is limited. For an invitation with details, please send an email to <a href="mailto:ortc-ietf88@hookflash.com" target="_blank" rel="nofollow">ortc-ietf88@hookflash.com</a> with your:</p>
+<ul>
+<li>Name</li>
+<li>Company affiliation</li>
+<li>Email address</li>
+</ul>
+<p>Remote participation will also be available.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.w3.org/community/orca/2013/10/29/orca-walk-through-ietf-88/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Prototype Implementation and Demo of ORTC API</title>
+		<link>https://www.w3.org/community/orca/2013/10/21/prototype-implementation-and-demo-of-ortc-api/</link>
+					<comments>https://www.w3.org/community/orca/2013/10/21/prototype-implementation-and-demo-of-ortc-api/#respond</comments>
+		
+		<dc:creator><![CDATA[Michael Champion]]></dc:creator>
+		<pubDate>Mon, 21 Oct 2013 17:57:22 +0000</pubDate>
+				<category><![CDATA[ORTC API]]></category>
+		<guid isPermaLink="false">http://www.w3.org/community/orca/?p=43</guid>
+
+					<description><![CDATA[Lots has happened since the initial draft ORTC API spec was published on October 11.  Robin Raymond and Bernard Aboba demonstrated an early implementation of ORTC at the IIT RTC Conference last week, and the demo/implementation has been released by Microsoft Open &#8230; <a href="https://www.w3.org/community/orca/2013/10/21/prototype-implementation-and-demo-of-ortc-api/">Continue reading <span class="meta-nav">&#8594;</span></a>]]></description>
+										<content:encoded><![CDATA[<p>Lots has happened since the initial draft ORTC API spec was published on October 11.  Robin Raymond and Bernard Aboba <a title="demonstrated" href="http://blog.webrtc.is/2013/10/20/ortc-live-demo-at-iit-rtc-expo/" target="_blank" rel="nofollow">demonstrated an early implementation of ORTC</a> at the IIT RTC Conference last week, and the demo/implementation has been <a href="http://msopentech.com/blog/2013/10/18/ms-open-tech-publishes-first-implementation-w3c-ortc-simplify-web-based-real-time-communications/" target="_blank" rel="nofollow">released by Microsoft Open Technologies.</a>  Also, there is a thread in the community group mailing list discussing <a href="http://lists.w3.org/Archives/Public/public-orca/2013Oct/0001.html" target="_blank" rel="nofollow">questions about the spec </a>that came up while implementing it.</p>
+<p>This is encouraging progress, but it&#8217;s just the first step.  It would be great to get more people using this implementation and giving feedback about its usability to this Community Group. It would be even better to see others implementing the spec and sharing their implementation and  interoperability experience here.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.w3.org/community/orca/2013/10/21/prototype-implementation-and-demo-of-ortc-api/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>First Draft of Object RTC (ORTC) API for WebRTC published by ORCA – Object-RTC API Community Group</title>
+		<link>https://www.w3.org/community/orca/2013/10/12/first-draft-of-object-rtc-ortc-api-for-webrtc-published-by-orca-object-rtc-api-community-group/</link>
+					<comments>https://www.w3.org/community/orca/2013/10/12/first-draft-of-object-rtc-ortc-api-for-webrtc-published-by-orca-object-rtc-api-community-group/#comments</comments>
+		
+		<dc:creator><![CDATA[W3C Team]]></dc:creator>
+		<pubDate>Sat, 12 Oct 2013 00:45:57 +0000</pubDate>
+				<category><![CDATA[Uncategorized]]></category>
+		<guid isPermaLink="false">https://www.w3.org/community/orca/?p=39</guid>
+
+					<description><![CDATA[On 2013-10-12 the ORCA &#8211; Object-RTC API Community Group published the first draft of the following specification: Object RTC (ORTC) API for WebRTC. Participants contribute material to this specification under the W3C Community Contributor License Agreement (CLA). If you have &#8230; <a href="https://www.w3.org/community/orca/2013/10/12/first-draft-of-object-rtc-ortc-api-for-webrtc-published-by-orca-object-rtc-api-community-group/">Continue reading <span class="meta-nav">&#8594;</span></a>]]></description>
+										<content:encoded><![CDATA[<p>On 2013-10-12 the <a href="/community/orca">ORCA &#8211; Object-RTC API Community Group</a> published the first draft of the following specification:</p>
+<ul>
+<li><a href="https://rawgithub.com/openpeer/ortc/master/ortc.html" target="_blank" rel="nofollow">Object RTC (ORTC) API for WebRTC</a>.</li>
+</ul>
+<p><a href="/community/orca/participants">Participants</a> contribute material to this specification under the <a href="https://www.w3.org/community/about/agreements/cla/">W3C Community Contributor License Agreement (CLA)</a>.</p>
+<p>If you have any questions, please contact the group on their public list: public-orca@w3.org. Learn more about the  <a href="/community/orca">ORCA &#8211; Object-RTC API Community Group</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.w3.org/community/orca/2013/10/12/first-draft-of-object-rtc-ortc-api-for-webrtc-published-by-orca-object-rtc-api-community-group/feed/</wfw:commentRss>
+			<slash:comments>1</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>
